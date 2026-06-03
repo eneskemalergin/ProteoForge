@@ -8,8 +8,8 @@ class ProteoForgeError(Exception):
 
 
 class ProteoForgeValidationError(ProteoForgeError):
-    """Data contract violation."""
+    """Raised when input data or configuration violates the package contract."""
 
 
 class ProteoForgeIOError(ProteoForgeError):
-    """File format or parse failure."""
+    """Raised when a file cannot be read or parsed."""

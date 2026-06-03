@@ -39,6 +39,26 @@ def _row(label: str, ref: dict[str, Any], pf: dict[str, Any]) -> dict[str, Any]:
 
 
 def summarize_json(path: Path, *, label: str | None = None) -> dict[str, Any]:
+    """
+    Build a summary row from one zebrac JSON file.
+
+    Parameters
+    ----------
+    path
+        zebrac output with two results (reference, then ProteoForge).
+    label
+        Optional case name; defaults to the parent directory of ``path``.
+
+    Returns
+    -------
+    dict
+        Wall time, RSS, and speedup fields for one case.
+
+    Raises
+    ------
+    ValueError
+        If the JSON does not contain two benchmark results.
+    """
     payload = json.loads(path.read_text(encoding="utf-8"))
     results = payload.get("results", [])
     if len(results) < 2:
@@ -118,7 +138,9 @@ def main() -> None:
 
     if args.output is not None:
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps({"cases": rows}, indent=2) + "\n", encoding="utf-8")
+        args.output.write_text(
+            json.dumps({"cases": rows}, indent=2) + "\n", encoding="utf-8"
+        )
 
 
 if __name__ == "__main__":

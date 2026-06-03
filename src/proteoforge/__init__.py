@@ -1,4 +1,9 @@
-"""ProteoForge: differential proteoform discovery for bottom-up proteomics."""
+"""
+ProteoForge public API.
+
+Exports configuration, prepare entry points, typed handoff objects, and
+fixture loading for tests and benchmarks.
+"""
 
 from importlib.metadata import PackageNotFoundError, version
 

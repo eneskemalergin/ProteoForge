@@ -11,11 +11,27 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from proteoforge import Config, prepare_from_parquet  # noqa: E402
-from tools.compare._shared import OUTPUT_NAME, write_normalized_parquet  # noqa: E402
+from tools.compare._shared import (
+    OUTPUT_NAME,
+    write_normalized_parquet,
+)
+
+from proteoforge import Config, prepare_from_parquet
 
 
 def run(input_path: Path, config_path: Path, output_path: Path) -> None:
+    """
+    Run ``prepare_from_parquet`` and write normalized long parquet.
+
+    Parameters
+    ----------
+    input_path
+        Peptide parquet input.
+    config_path
+        Pipeline config YAML.
+    output_path
+        Destination parquet path.
+    """
     config = Config.from_yaml_path(config_path)
     dataset = prepare_from_parquet(input_path, config)
     write_normalized_parquet(dataset.peptides, output_path)

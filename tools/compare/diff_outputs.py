@@ -3,8 +3,8 @@
 Compare normalized long parquet outputs with strict per-key parity.
 
 Each observation is matched on ``(protein_id, peptide_id, sample_id)`` via an
-inner 1:1 join. Values are compared element-wise for that key — not via row
-position after sort, and not via aggregate statistics (mean/median/sum) alone.
+inner 1:1 join. Values are compared element-wise for that key, not via row
+position after sort and not via aggregate statistics alone.
 """
 
 from __future__ import annotations

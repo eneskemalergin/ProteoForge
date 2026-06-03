@@ -80,7 +80,7 @@ default-groups = ["dev"]
 [tool.ruff]
 target-version = "py312"
 line-length = 88
-src = ["src", "tests", "benchmarks", "noxfile.py"]
+src = ["src", "tests", "benchmarks", "tools/compare", "noxfile.py"]
 exclude = ["src/proteoforge/_version.py"]
 
 [tool.ruff.lint]
@@ -88,6 +88,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "TCH", "PTH", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
 "benchmarks/**" = ["TC002", "TC003"]
+"tools/compare/**" = ["TC003", "E402"]
 
 [tool.mypy]
 python_version = "3.12"

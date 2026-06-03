@@ -76,29 +76,29 @@ Defaults match canonical names (identity mapping). Omitted `column_map` fields u
 
 ### Used by `prepare()` today
 
-**`control_condition`** (required)  
+**`control_condition`** (required)
 Control condition key in `conditions`. Normalization subtracts each peptide's mean intensity in these samples.
 
-**`conditions`** (required)  
+**`conditions`** (required)
 Mapping of condition name to sample ID list. Defines scope and replicate structure.
 
-**`min_peptides`** (default `4`, minimum `2`)  
+**`min_peptides`** (default `4`, minimum `2`)
 Each protein must have at least this many unique `(protein_id, peptide_id)` pairs after scoping.
 
-**`input_is_log2`** (default `false`)  
+**`input_is_log2`** (default `false`)
 When `false`, intensities are log2-transformed during normalization. Set `true` when the input is already log2-scaled.
 
-**`column_map`** (optional)  
+**`column_map`** (optional)
 Source-to-canonical column renames for peptide tables.
 
-**`model`** (default `"rlm"`, one of `rlm`, `wls`, `ebayes`)  
+**`model`** (default `"rlm"`, one of `rlm`, `wls`, `ebayes`)
 Affects validation and which optional columns are retained on `PreparedDataset`:
 
 - `rlm`: provenance columns are dropped from the handoff unless present in input (not exposed as array properties).
 - `wls`: requires provenance (`is_real` / `is_complete_missing`) or `weight` on the peptide table before prepare completes.
 - `ebayes`: same provenance column retention as WLS for properties; weight derivation is not implemented in v0.0.1.
 
-**`wls_biological_weight`** (default `0.5`, range `(0, 1]`)  
+**`wls_biological_weight`** (default `0.5`, range `(0, 1]`)
 Reserved for WLS weight construction in a future release. Stored and validated only.
 
 ### Reserved for v0.1.0 (validated now, not consumed by `prepare()`)

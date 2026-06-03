@@ -7,15 +7,19 @@ import argparse
 import importlib.util
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 import polars as pl
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from tools.compare._shared import (  # noqa: E402
+from tools.compare._shared import (
     OUTPUT_NAME,
     load_config_dict,
     read_scoped_reference,
@@ -25,7 +29,7 @@ from tools.compare._shared import (  # noqa: E402
 REF_NORMALIZE = ROOT / "ref" / "ProteoForge_analysis_src" / "normalize.py"
 
 
-def _load_against_condition():
+def _load_against_condition() -> Callable[..., Any]:
     if not REF_NORMALIZE.is_file():
         msg = f"Reference module not found: {REF_NORMALIZE}"
         raise FileNotFoundError(msg)
@@ -39,6 +43,23 @@ def _load_against_condition():
 
 
 def run(input_path: Path, config_path: Path, output_path: Path) -> None:
+    """
+    Run reference ``against_condition`` and write normalized long parquet.
+
+    Parameters
+    ----------
+    input_path
+        Peptide parquet input.
+    config_path
+        Pipeline config YAML.
+    output_path
+        Destination parquet path.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the reference module is not checked out under ``ref/``.
+    """
     against_condition = _load_against_condition()
     config_dict = load_config_dict(config_path)
     scoped = read_scoped_reference(input_path, config_path)

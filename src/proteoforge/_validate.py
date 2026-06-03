@@ -1,4 +1,4 @@
-"""Validation and PreparedDataset assembly."""
+"""Validation and PreparedDataset assembly for the prepare pipeline."""
 
 from __future__ import annotations
 
@@ -120,7 +120,7 @@ def validate_and_prepare(
         "n_proteins": int(np.unique(protein_ids).size),
         "n_peptides": int(unique_pairs),
         "n_samples": len(sample_ids),
-        "nan_fraction": float(frame.get_column(INTENSITY).is_nan().mean()),
+        "nan_fraction": float(frame.select(pl.col(INTENSITY).is_nan().mean()).item()),
         "control_condition": config.control_condition,
         "conditions_used": config.condition_levels,
         **scope_metadata,
@@ -210,9 +210,7 @@ def _validate_structure(
         raise ProteoForgeValidationError(msg)
 
     present_samples = (
-        peptide_samples
-        if peptide_samples is not None
-        else sample_ids_in_frame(frame)
+        peptide_samples if peptide_samples is not None else sample_ids_in_frame(frame)
     )
     design_samples = set(design.sample_ids)
     missing_samples = sorted(design_samples - present_samples)
@@ -362,4 +360,3 @@ def _ordered_samples(
     for condition in condition_levels:
         ordered.extend(design.condition_to_samples[condition])
     return tuple(ordered)
-

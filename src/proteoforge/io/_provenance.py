@@ -80,6 +80,11 @@ def provenance_from_frame(frame: pl.DataFrame) -> pl.DataFrame:
     -------
     polars.DataFrame
         Coerced provenance table.
+
+    Raises
+    ------
+    ProteoForgeValidationError
+        If key columns or value columns are missing.
     """
     key_cols = {PROTEIN_ID, PEPTIDE_ID, SAMPLE_ID}
     value_cols = {IS_REAL, IS_COMPLETE_MISSING, WEIGHT}

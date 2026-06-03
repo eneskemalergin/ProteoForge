@@ -204,7 +204,14 @@ class Config:
 
     @classmethod
     def from_yaml_path(cls, path: str | Path) -> Self:
-        """Load configuration from a YAML file."""
+        """
+        Load configuration from a YAML file.
+
+        Raises
+        ------
+        ProteoForgeValidationError
+            If the file cannot be parsed or validation fails.
+        """
         return cls.from_yaml(Path(path).read_text(encoding="utf-8"))
 
     @classmethod

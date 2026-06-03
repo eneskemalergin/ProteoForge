@@ -15,7 +15,7 @@ repos:
         args: ["--fix=lf"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.12
+    rev: v0.15.15
     hooks:
       - id: ruff-check
       - id: ruff-format
@@ -24,7 +24,11 @@ repos:
     rev: v1.16.0
     hooks:
       - id: mypy
-        additional_dependencies: []
+        additional_dependencies:
+          - numpy>=2.2
+          - polars>=1.26
+          - scipy>=1.15
+          - types-PyYAML>=6.0.12
         args: ["--config-file=pyproject.toml"]
         pass_filenames: false
 

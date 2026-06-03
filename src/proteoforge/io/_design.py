@@ -75,6 +75,12 @@ def design_from_frame(frame: pl.DataFrame) -> DesignTable:
     -------
     DesignTable
         Parsed design metadata.
+
+    Raises
+    ------
+    ProteoForgeValidationError
+        If required columns are missing, the table is empty, or sample IDs
+        are duplicated.
     """
     required = {DESIGN_SAMPLE_ID, DESIGN_CONDITION}
     missing = required - set(frame.columns)

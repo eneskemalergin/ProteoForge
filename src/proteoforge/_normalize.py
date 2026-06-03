@@ -1,4 +1,4 @@
-"""Control-relative normalization (Module 1)."""
+"""Control-relative normalization for peptide intensities."""
 
 from __future__ import annotations
 
@@ -113,6 +113,13 @@ def normalize_control_relative_long(
     -------
     polars.DataFrame
         Input columns plus ``intensity_normalized``.
+
+    Raises
+    ------
+    ProteoForgeValidationError
+        If control samples are empty, required columns are missing,
+        intensities are non-positive when log2 is required, or a sample
+        column has zero standard deviation after transform.
     """
     if frame.is_empty():
         return frame.with_columns(pl.lit([]).alias(NORMALIZED_INTENSITY))
@@ -130,12 +137,8 @@ def normalize_control_relative_long(
         )
     )
 
-    sample_stats = work.group_by(SAMPLE_ID).agg(
-        pl.col("_value").std().alias("_std")
-    )
-    _long_normalize_check_zero_std(
-        sample_stats.rename({"_std": "_sig"})
-    )
+    sample_stats = work.group_by(SAMPLE_ID).agg(pl.col("_value").std().alias("_std"))
+    _long_normalize_check_zero_std(sample_stats.rename({"_std": "_sig"}))
 
     control_set = list(control_sample_ids)
     work = work.with_columns(
@@ -199,9 +202,7 @@ def _long_normalize_log_value(
 
 def _long_normalize_check_zero_std(sample_stats: pl.DataFrame) -> None:
     zero_std_samples = (
-        sample_stats.filter(pl.col("_sig") == 0)
-        .get_column(SAMPLE_ID)
-        .to_list()
+        sample_stats.filter(pl.col("_sig") == 0).get_column(SAMPLE_ID).to_list()
     )
     if zero_std_samples:
         preview = zero_std_samples[:8]

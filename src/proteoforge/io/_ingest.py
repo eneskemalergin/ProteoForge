@@ -76,6 +76,11 @@ def materialize_peptide_table(
     samples_dropped_at_ingest
         Sample IDs removed during lazy ingest before the main collect. Empty for
         eager inputs or when no extra samples were present in the scan.
+
+    Raises
+    ------
+    ProteoForgeValidationError
+        If the table is empty or required columns are missing after harmonization.
     """
     if isinstance(peptides, pl.LazyFrame):
         frame, samples_dropped_at_ingest = _collect_lazy_peptides(peptides, config)
@@ -119,10 +124,7 @@ def _collect_lazy_peptides(
 def _lazy_sample_ids(lf: pl.LazyFrame) -> frozenset[str]:
     """Collect unique sample IDs from a lazy scan (one column, small collect)."""
     return frozenset(
-        lf.select(pl.col(SAMPLE_ID).unique())
-        .collect()
-        .get_column(SAMPLE_ID)
-        .to_list()
+        lf.select(pl.col(SAMPLE_ID).unique()).collect().get_column(SAMPLE_ID).to_list()
     )
 
 

@@ -1,4 +1,9 @@
-"""Public prepare entry point."""
+"""
+Public prepare entry point.
+
+Expose :func:`prepare`, :func:`prepare_from_parquet`, and
+:func:`validate_and_prepare` for validation and normalization.
+"""
 
 from __future__ import annotations
 
@@ -43,6 +48,11 @@ def prepare(
     -------
     PreparedDataset
         Validated, normalized data for downstream modeling.
+
+    Raises
+    ------
+    ProteoForgeValidationError
+        If validation or normalization fails.
     """
     return validate_and_prepare(
         peptides,
@@ -77,6 +87,13 @@ def prepare_from_parquet(
     -------
     PreparedDataset
         Validated, normalized data for downstream modeling.
+
+    Raises
+    ------
+    ProteoForgeIOError
+        If ``path`` is missing or not readable parquet.
+    ProteoForgeValidationError
+        If validation or normalization fails.
     """
     lf = _scan_peptide_file(Path(path), config)
     return validate_and_prepare(lf, config, provenance=provenance)

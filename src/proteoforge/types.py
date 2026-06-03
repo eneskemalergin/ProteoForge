@@ -16,7 +16,12 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class ColumnMap:
-    """Map source column names to canonical ProteoForge names."""
+    """
+    Map source column names in input files to canonical ProteoForge names.
+
+    Each field holds the **source** column name expected in the file. Defaults
+    match canonical names (identity mapping).
+    """
 
     protein_id: str = "protein_id"
     peptide_id: str = "peptide_id"
@@ -28,7 +33,7 @@ class ColumnMap:
     weight: str = "weight"
 
     def as_dict(self) -> dict[str, str]:
-        """Return canonical-to-source mapping for renaming."""
+        """Return source-to-canonical rename map for :func:`harmonize_columns`."""
         return {
             self.protein_id: "protein_id",
             self.peptide_id: "peptide_id",
@@ -43,7 +48,18 @@ class ColumnMap:
 
 @dataclass(frozen=True)
 class DesignTable:
-    """Sample-to-condition map parsed from a design file."""
+    """
+    Sample-to-condition map derived from ``Config.conditions``.
+
+    Attributes
+    ----------
+    sample_ids
+        Ordered sample identifiers.
+    sample_to_condition
+        Lookup from sample ID to condition label.
+    condition_to_samples
+        Lookup from condition label to sample ID tuple.
+    """
 
     sample_ids: tuple[str, ...]
     sample_to_condition: dict[str, str]
@@ -58,6 +74,21 @@ class PreparedDataset:
     Long-format handoff in ``peptides``: one row per
     ``(protein_id, peptide_id, sample_id)`` with ``intensity_normalized``.
     See ``docs/prepared-dataset.md`` for the full contract.
+
+    Attributes
+    ----------
+    config
+        Frozen configuration used during prepare.
+    peptides
+        Long-format normalized table.
+    sample_ids
+        Sample IDs in condition order.
+    condition_levels
+        Condition names with control first.
+    protein_index
+        Per-row protein ordinal for grouping.
+    metadata
+        Run statistics and scope audit fields.
     """
 
     config: Config
@@ -97,6 +128,7 @@ class PreparedDataset:
 
     @property
     def is_real(self) -> npt.NDArray[np.bool_] | None:
+        """Measured-vs-imputed mask per row, or ``None`` for RLM."""
         from proteoforge.schema import IS_REAL
 
         if self.config.model not in {"wls", "ebayes"}:
@@ -107,6 +139,7 @@ class PreparedDataset:
 
     @property
     def is_complete_missing(self) -> npt.NDArray[np.bool_] | None:
+        """Condition-wide imputation flag per row, or ``None`` for RLM."""
         from proteoforge.schema import IS_COMPLETE_MISSING
 
         if self.config.model not in {"wls", "ebayes"}:
@@ -121,6 +154,7 @@ class PreparedDataset:
 
     @property
     def weight(self) -> npt.NDArray[np.float64] | None:
+        """Precomputed WLS weight per row, or ``None`` for RLM."""
         from proteoforge.schema import WEIGHT
 
         if self.config.model not in {"wls", "ebayes"}:
@@ -128,7 +162,5 @@ class PreparedDataset:
         if WEIGHT not in self.peptides.columns:
             return None
         return (
-            self.peptides.get_column(WEIGHT)
-            .to_numpy()
-            .astype(np.float64, copy=False)
+            self.peptides.get_column(WEIGHT).to_numpy().astype(np.float64, copy=False)
         )

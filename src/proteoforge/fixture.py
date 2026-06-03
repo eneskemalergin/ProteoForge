@@ -72,7 +72,7 @@ class FixtureBundle:
         return pl.read_parquet(self.benchmark_path)
 
     def prepare(self, config: Config | None = None) -> PreparedDataset:
-        """Run Phase 1 prepare on this fixture's inputs."""
+        """Validate and normalize this fixture's peptide table."""
         cfg = config or self.load_config()
         return prepare_from_parquet(self.peptides_path, cfg)
 
@@ -99,6 +99,11 @@ def load_fixture_bundle(manifest_path: str | Path) -> FixtureBundle:
     -------
     FixtureBundle
         Resolved fixture paths.
+
+    Raises
+    ------
+    ProteoForgeValidationError
+        If the manifest or referenced files are missing or invalid.
     """
     path = Path(manifest_path)
     if path.is_dir():

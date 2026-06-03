@@ -9,6 +9,7 @@ from proteoforge import __version__
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the root argument parser for ``proteoforge``."""
     parser = argparse.ArgumentParser(prog="proteoforge")
     parser.add_argument(
         "--version",

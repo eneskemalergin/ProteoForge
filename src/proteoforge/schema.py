@@ -1,4 +1,9 @@
-"""Canonical column names for ProteoForge data contracts."""
+"""
+Canonical column name constants for ProteoForge data contracts.
+
+Use these module-level strings instead of literal column names in validation,
+I/O, and normalization code.
+"""
 
 from __future__ import annotations
 

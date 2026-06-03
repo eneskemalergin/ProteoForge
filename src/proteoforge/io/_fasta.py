@@ -1,4 +1,4 @@
-"""Minimal FASTA loading for Phase 1."""
+"""Minimal FASTA loading."""
 
 from __future__ import annotations
 
@@ -17,8 +17,8 @@ def read_fasta(path: str | Path) -> pl.DataFrame:
     """
     Load a FASTA file into a Polars DataFrame.
 
-    Parses headers and sequences only. Full UniProt annotation parsing is
-    deferred to Phase 4 ``sequence.py``.
+    Parses headers and sequences only. Full UniProt annotation parsing is not
+    implemented in v0.0.1.
 
     Parameters
     ----------

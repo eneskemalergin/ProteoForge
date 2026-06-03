@@ -32,7 +32,9 @@ def _wide_from_long(
     sample_ids: tuple[str, ...],
 ) -> np.ndarray:
     wide = (
-        long_frame.select(["protein_id", "peptide_id", "sample_id", NORMALIZED_INTENSITY])
+        long_frame.select(
+            ["protein_id", "peptide_id", "sample_id", NORMALIZED_INTENSITY]
+        )
         .pivot(
             on="sample_id",
             index=["protein_id", "peptide_id"],

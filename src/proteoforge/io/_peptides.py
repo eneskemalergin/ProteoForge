@@ -97,6 +97,14 @@ def _input_source_columns(config: Config, available: set[str]) -> list[str]:
 
 
 def _scan_peptide_file(path: Path, config: Config) -> pl.LazyFrame:
+    """
+    Lazy-scan a peptide file with column projection from ``config.column_map``.
+
+    Raises
+    ------
+    ProteoForgeIOError
+        If the extension is not ``.parquet``, ``.csv``, or ``.tsv``.
+    """
     suffix = path.suffix.lower()
     if suffix == ".parquet":
         lf = pl.scan_parquet(path)

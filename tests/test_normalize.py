@@ -87,7 +87,9 @@ def test_long_normalize_matches_wide(minimal_peptides_frame, minimal_config) -> 
     np.testing.assert_allclose(long_as_wide, wide_norm, rtol=1e-10, atol=1e-11)
 
 
-def test_long_normalize_preserves_row_order(minimal_peptides_frame, minimal_config) -> None:
+def test_long_normalize_preserves_row_order(
+    minimal_peptides_frame, minimal_config
+) -> None:
     from proteoforge.io._design import attach_conditions
 
     frame = attach_conditions(minimal_peptides_frame, minimal_config.to_design_table())

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import polars as pl
 
@@ -47,6 +47,20 @@ def select_representative_protein(
 
     priority_ids = [entry for entry in protein_ids if len(entry) == priority_length]
     return priority_ids[0] if priority_ids else protein_ids[0]
+
+
+@overload
+def harmonize_columns(
+    frame: pl.LazyFrame,
+    column_map: ColumnMap,
+) -> pl.LazyFrame: ...
+
+
+@overload
+def harmonize_columns(
+    frame: pl.DataFrame,
+    column_map: ColumnMap,
+) -> pl.DataFrame: ...
 
 
 def harmonize_columns(
@@ -112,7 +126,9 @@ def protein_ids_need_resolution(
     if protein_col not in frame.columns:
         return False
     return bool(
-        frame.select(pl.col(protein_col).str.contains(PROTEIN_GROUP_SEPARATOR).any()).item()
+        frame.select(
+            pl.col(protein_col).str.contains(PROTEIN_GROUP_SEPARATOR).any()
+        ).item()
     )
 
 
@@ -147,13 +163,9 @@ def resolve_protein_ids(
 
 def _resolve_protein_ids_expr(protein_col: str) -> pl.Expr:
     parts = pl.col(protein_col).str.split(PROTEIN_GROUP_SEPARATOR)
-    preferred = (
-        parts.list.eval(
-            pl.element().filter(
-                pl.element().str.len_chars() == PRIORITY_ACCESSION_LENGTH
-            )
-        ).list.first()
-    )
+    preferred = parts.list.eval(
+        pl.element().filter(pl.element().str.len_chars() == PRIORITY_ACCESSION_LENGTH)
+    ).list.first()
     return pl.coalesce(preferred, parts.list.first()).alias(protein_col)
 
 
@@ -167,4 +179,3 @@ def resolve_protein_ids_lazy(
     if protein_col not in schema:
         return lf
     return lf.with_columns(_resolve_protein_ids_expr(protein_col))
-

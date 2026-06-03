@@ -4,22 +4,22 @@ Output of `prepare()` and `prepare_from_parquet()`. Validated, control-relative 
 
 ## Object fields
 
-**`config`**  
+**`config`**
 The `Config` instance used during prepare (frozen copy of design and options).
 
-**`peptides`**  
+**`peptides`**
 Polars `DataFrame`, one row per `(protein_id, peptide_id, sample_id)`. See table below.
 
-**`sample_ids`**  
+**`sample_ids`**
 Tuple of sample IDs in condition order: control condition first, then remaining conditions in config order, samples in YAML list order within each condition.
 
-**`condition_levels`**  
+**`condition_levels`**
 Tuple of condition names with control first.
 
-**`protein_index`**  
+**`protein_index`**
 Length `peptides.height`. Integer protein ordinal per row for grouping (same protein shares one index value across peptides and samples).
 
-**`metadata`**  
+**`metadata`**
 Dict with run statistics: `n_proteins`, `n_peptides`, `n_samples`, `nan_fraction`, `control_condition`, `conditions_used`, `samples_used`, `samples_dropped`.
 
 ## `peptides` columns
@@ -42,19 +42,19 @@ Only samples listed under `config.conditions` are kept. Others are dropped with 
 
 ## Properties
 
-**`n_peptides`**  
+**`n_peptides`**
 Count of unique `(protein_id, peptide_id)` pairs.
 
-**`n_samples`**  
+**`n_samples`**
 Length of `sample_ids`.
 
-**`n_proteins`**  
+**`n_proteins`**
 From `metadata["n_proteins"]`.
 
-**`intensity_normalized`**  
+**`intensity_normalized`**
 1-D `float64` NumPy array aligned to `peptides` rows (same order as the DataFrame).
 
-**`is_real`**, **`is_complete_missing`**, **`weight`**  
+**`is_real`**, **`is_complete_missing`**, **`weight`**
 Return aligned NumPy arrays when `config.model` is `wls` or `ebayes` and the column exists on `peptides`. Return `None` for `rlm` or when the column was not retained.
 
 ## Normalization
