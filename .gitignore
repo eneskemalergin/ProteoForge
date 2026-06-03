@@ -1,0 +1,48 @@
+# Dev folders to ignore
+tmp/
+ref/
+dev/
+real/
+plan/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+src/proteoforge/_version.py
+
+# Virtual environment
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Type checking
+.mypy_cache/
+.ty_cache/
+
+# Caches
+.ruff_cache/
+.pytest_cache/
+.nox/
+htmlcov/
+.coverage
+coverage.xml
+
+# uv
+uv.lock.bak
+
+# Docs
+site/
+.cache/
+docs/notebooks/*.ipynb
+docs/notebooks/*.png
+docs/notebooks/*.parquet
+docs/notebooks/*.json

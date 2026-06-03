@@ -1,0 +1,35 @@
+site_name: ProteoForge
+site_description: Proteomics analysis toolkit
+site_url: https://github.com/eneskemalergin/ProteoForge
+repo_url: https://github.com/eneskemalergin/ProteoForge
+repo_name: eneskemalergin/ProteoForge
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - toc:
+      permalink: true
+
+docs_dir: docs
+site_dir: site
+strict: true

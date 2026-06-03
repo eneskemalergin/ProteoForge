@@ -1,0 +1,114 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "proteoforge"
+dynamic = ["version"]
+description = "Proteomics analysis toolkit"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Enes Kemal Ergin" }]
+keywords = ["proteomics", "mass-spectrometry", "bioinformatics"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Typing :: Typed",
+]
+dependencies = []
+
+[project.optional-dependencies]
+plots = ["matplotlib>=3.9"]
+interactive = ["plotly>=5.24", "ipywidgets>=8.1"]
+accel = ["numba>=0.61"]
+docs = ["mkdocs>=1.6", "mkdocs-material>=9.6"]
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.135",
+    "mypy>=1.16",
+    "nox>=2025.5.0",
+    "pre-commit>=4.2",
+    "pytest-codspeed>=5.0",
+    "pytest-cov>=6.1",
+    "pytest>=8.4",
+    "ruff>=0.11",
+]
+
+[project.scripts]
+proteoforge = "proteoforge.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/eneskemalergin/ProteoForge"
+Documentation = "https://github.com/eneskemalergin/ProteoForge#readme"
+Repository = "https://github.com/eneskemalergin/ProteoForge"
+Issues = "https://github.com/eneskemalergin/ProteoForge/issues"
+Changelog = "https://github.com/eneskemalergin/ProteoForge/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/proteoforge/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/proteoforge"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/tests", "/benchmarks", "/docs", "/README.md", "/CHANGELOG.md", "/LICENSE"]
+
+[tool.uv]
+default-groups = ["dev"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+src = ["src", "tests", "benchmarks", "noxfile.py"]
+exclude = ["src/proteoforge/_version.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "TCH", "PTH", "RUF"]
+
+[tool.mypy]
+python_version = "3.10"
+mypy_path = "src"
+packages = ["proteoforge"]
+strict = true
+warn_unreachable = true
+warn_unused_ignores = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = ["benchmarks.*", "proteoforge._version"]
+ignore_errors = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "benchmarks"]
+addopts = ["--strict-markers", "--strict-config"]
+markers = [
+    "benchmark: performance benchmarks (pytest-codspeed)",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["proteoforge"]
+omit = ["src/proteoforge/_version.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 0
+
+[tool.codespell]
+skip = ".git,.venv,uv.lock,dist,build,site,.nox,htmlcov"
+ignore-words-list = "crate,ser"
