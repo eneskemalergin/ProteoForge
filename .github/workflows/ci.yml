@@ -35,7 +35,7 @@ jobs:
       - name: Pytest
         run: uv run pytest tests --cov=proteoforge --cov-report=term-missing
 
-  # Re-enable for release prep: full OS and Python matrix (3.10 to 3.15).
+  # Re-enable for release prep: full OS and Python matrix (3.12 to 3.15).
   # test:
   #   name: Test (${{ matrix.os }}, Python ${{ matrix.python-version }})
   #   runs-on: ${{ matrix.os }}
@@ -44,7 +44,7 @@ jobs:
   #     fail-fast: false
   #     matrix:
   #       os: [ubuntu-latest, macos-latest, windows-latest]
-  #       python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+  #       python-version: ["3.12", "3.13", "3.14", "3.15"]
   #   steps:
   #     - uses: actions/checkout@v6
   #     - uses: actions/setup-python@v6

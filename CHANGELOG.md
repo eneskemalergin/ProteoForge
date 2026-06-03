@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+### Changed
+
+- Python support: minimum **3.12**, test target **3.12 to 3.15** (dropped 3.10/3.11).
+- Runtime dependencies added: NumPy 2.2+, Polars 1.26+, SciPy 1.15+.
+- Optional `cli` extra (Typer, Rich, PyYAML); bumped optional dependency floors.
+
 ### Added
 
 - Initial project scaffolding: `uv` workflow, `hatchling` + `hatch-vcs`, CI, docs, and PyPI publish pipeline.
