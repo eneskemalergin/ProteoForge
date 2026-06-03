@@ -1,5 +1,5 @@
 site_name: ProteoForge
-site_description: Proteomics analysis toolkit
+site_description: Differential proteoform discovery for bottom-up proteomics
 site_url: https://github.com/eneskemalergin/ProteoForge
 repo_url: https://github.com/eneskemalergin/ProteoForge
 repo_name: eneskemalergin/ProteoForge
@@ -22,6 +22,11 @@ theme:
 
 nav:
   - Home: index.md
+  - Configuration: config.md
+  - Input and output: io.md
+  - Prepare: prepare.md
+  - Normalization: normalization.md
+  - PreparedDataset: prepared-dataset.md
 
 markdown_extensions:
   - admonition

@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ProteoForge Config",
+  "type": "object",
+  "required": [
+    "control_condition",
+    "conditions"
+  ],
+  "properties": {
+    "control_condition": {
+      "type": "string",
+      "minLength": 1
+    },
+    "conditions": {
+      "type": "object",
+      "minProperties": 2,
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 2,
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "min_peptides": {
+      "type": "integer",
+      "minimum": 2,
+      "default": 4
+    },
+    "input_is_log2": {
+      "type": "boolean",
+      "default": false
+    },
+    "column_map": {
+      "type": "object",
+      "properties": {
+        "protein_id": {
+          "type": "string"
+        },
+        "peptide_id": {
+          "type": "string"
+        },
+        "sample_id": {
+          "type": "string"
+        },
+        "condition": {
+          "type": "string"
+        },
+        "intensity": {
+          "type": "string"
+        },
+        "is_real": {
+          "type": "string"
+        },
+        "is_complete_missing": {
+          "type": "string"
+        },
+        "weight": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "model": {
+      "type": "string",
+      "enum": [
+        "rlm",
+        "wls",
+        "ebayes"
+      ],
+      "default": "rlm"
+    },
+    "fdr": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 1,
+      "default": 0.001
+    },
+    "linkage": {
+      "type": "string",
+      "default": "ward"
+    },
+    "cut": {
+      "type": "string",
+      "enum": [
+        "hybrid_outlier",
+        "fixed_height",
+        "dynamic_tree"
+      ],
+      "default": "hybrid_outlier"
+    },
+    "n_jobs": {
+      "type": "integer",
+      "default": -1
+    },
+    "wls_biological_weight": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "default": 0.5
+    }
+  },
+  "additionalProperties": false
+}

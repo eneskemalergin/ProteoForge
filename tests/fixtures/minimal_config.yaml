@@ -1,0 +1,18 @@
+control_condition: control
+
+conditions:
+  control:
+    - S1
+    - S2
+  treated:
+    - S3
+    - S4
+
+min_peptides: 4
+input_is_log2: false
+
+column_map:
+  protein_id: protein_id
+  peptide_id: peptide_id
+  sample_id: sample_id
+  intensity: intensity

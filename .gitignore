@@ -4,6 +4,7 @@ ref/
 dev/
 real/
 plan/
+benchmarks/
 
 # Python
 __pycache__/

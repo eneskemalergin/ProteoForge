@@ -26,6 +26,7 @@ classifiers = [
 dependencies = [
     "numpy>=2.2",
     "polars>=1.26",
+    "pyyaml>=6.0.2",
     "scipy>=1.15",
 ]
 
@@ -33,7 +34,7 @@ dependencies = [
 plots = ["matplotlib>=3.10"]
 interactive = ["plotly>=6.0", "ipywidgets>=8.1"]
 accel = ["numba>=0.61"]
-cli = ["pyyaml>=6.0.2", "rich>=14.0", "typer>=0.15"]
+cli = ["rich>=14.0", "typer>=0.15"]
 docs = ["mkdocs>=1.6", "mkdocs-material>=9.6", "mkdocstrings>=0.29", "mkdocstrings-python>=1.16"]
 
 [dependency-groups]
@@ -41,7 +42,10 @@ dev = [
     "hypothesis>=6.135",
     "mypy>=1.16",
     "nox>=2025.5.0",
+    "pandas>=2.2",
     "pre-commit>=4.2",
+    "pyyaml>=6.0.2",
+    "types-PyYAML>=6.0.12",
     "pytest-codspeed>=5.0",
     "pytest-cov>=6.1",
     "pytest>=8.4",
@@ -82,6 +86,9 @@ exclude = ["src/proteoforge/_version.py"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "TCH", "PTH", "RUF"]
 
+[tool.ruff.lint.per-file-ignores]
+"benchmarks/**" = ["TC002", "TC003"]
+
 [tool.mypy]
 python_version = "3.12"
 mypy_path = "src"
@@ -96,7 +103,7 @@ module = ["benchmarks.*", "proteoforge._version"]
 ignore_errors = true
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "benchmarks"]
+testpaths = ["tests"]
 addopts = ["--strict-markers", "--strict-config"]
 markers = [
     "benchmark: performance benchmarks (pytest-codspeed)",
