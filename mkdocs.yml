@@ -19,19 +19,27 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - content.code.copy
 
 nav:
   - Home: index.md
-  - Configuration: config.md
-  - Input and output: io.md
-  - Prepare: prepare.md
-  - Normalization: normalization.md
-  - PreparedDataset: prepared-dataset.md
+  - Guides:
+      - Configuration: config.md
+      - Input and output: io.md
+      - Prepare: prepare.md
+      - Normalization: normalization.md
+      - Discordance: discordance.md
+      - PreparedDataset: prepared-dataset.md
 
 markdown_extensions:
   - admonition
   - pymdownx.superfences
   - pymdownx.highlight
+  - pymdownx.details
   - toc:
       permalink: true
 

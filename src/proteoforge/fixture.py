@@ -1,4 +1,4 @@
-"""Fixture bundle loading for examples, tests, and benchmarks."""
+"""Fixture bundle loading for examples and tests."""
 
 from __future__ import annotations
 
@@ -87,7 +87,7 @@ def load_fixture_bundle(manifest_path: str | Path) -> FixtureBundle:
         description: ...
         files:
           peptides: complete-real.parquet
-          benchmark: complete-benchmark.parquet  # optional
+          benchmark: eval-labels.parquet  # optional ground-truth columns
           config: config.yaml
 
     Parameters

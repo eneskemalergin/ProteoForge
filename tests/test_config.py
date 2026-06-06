@@ -20,6 +20,8 @@ def test_config_defaults() -> None:
     assert cfg.min_peptides == 4
     assert cfg.model == "rlm"
     assert cfg.fdr == 0.001
+    assert cfg.correction_within == "bonferroni"
+    assert cfg.correction_global == "fdr_bh"
 
 
 def test_config_rejects_empty_control() -> None:
@@ -43,6 +45,15 @@ def test_config_rejects_duplicate_sample_across_conditions() -> None:
         Config(
             control_condition="a",
             conditions={"a": ("S1", "S2"), "b": ("S2", "S3")},
+        )
+
+
+def test_config_rejects_ebayes() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="ebayes"):
+        Config(
+            control_condition="control",
+            conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
+            model="ebayes",
         )
 
 
@@ -101,6 +112,72 @@ def test_config_yaml_round_trip() -> None:
     restored = Config.from_yaml(text)
     assert restored.control_condition == "control"
     assert restored.min_peptides == 4
+
+
+def test_config_from_dict_requires_control_condition() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="control_condition"):
+        Config.from_dict(
+            {
+                "conditions": {
+                    "control": ["S1", "S2"],
+                    "treated": ["S3", "S4"],
+                },
+            }
+        )
+
+
+def test_config_from_dict_requires_conditions_mapping() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="conditions"):
+        Config.from_dict({"control_condition": "control"})
+
+
+def test_config_rejects_single_condition() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="at least two"):
+        Config(control_condition="only", conditions={"only": ("S1", "S2")})
+
+
+def test_config_rejects_fewer_than_two_samples_per_condition() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="fewer than 2 samples"):
+        Config(
+            control_condition="control",
+            conditions={"control": ("S1",), "treated": ("S2", "S3")},
+        )
+
+
+def test_config_rejects_invalid_n_jobs() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="n_jobs"):
+        Config(
+            control_condition="control",
+            conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
+            n_jobs=0,
+        )
+
+
+def test_config_rejects_invalid_correction_method() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="correction_within"):
+        Config(
+            control_condition="control",
+            conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
+            correction_within="none",
+        )
+
+
+def test_config_rejects_invalid_wls_biological_weight() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="wls_biological_weight"):
+        Config(
+            control_condition="control",
+            conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
+            wls_biological_weight=0.0,
+        )
+
+
+def test_config_rejects_min_peptides_below_two() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="min_peptides"):
+        Config(
+            control_condition="control",
+            conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
+            min_peptides=1,
+        )
 
 
 def test_config_json_schema_matches_artifact() -> None:

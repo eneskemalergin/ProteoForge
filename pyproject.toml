@@ -27,7 +27,7 @@ dependencies = [
     "numpy>=2.2",
     "polars>=1.26",
     "pyyaml>=6.0.2",
-    "scipy>=1.15",
+    "tqdm>=4.67",
 ]
 
 [project.optional-dependencies]
@@ -36,6 +36,13 @@ interactive = ["plotly>=6.0", "ipywidgets>=8.1"]
 accel = ["numba>=0.61"]
 cli = ["rich>=14.0", "typer>=0.15"]
 docs = ["mkdocs>=1.6", "mkdocs-material>=9.6", "mkdocstrings>=0.29", "mkdocstrings-python>=1.16"]
+ref = [
+    "pandas>=2.2",
+    "pyarrow>=18.0",
+    "scipy>=1.15",
+    "statsmodels>=0.14",
+    "tqdm>=4.67",
+]
 
 [dependency-groups]
 dev = [
@@ -46,10 +53,21 @@ dev = [
     "pre-commit>=4.2",
     "pyyaml>=6.0.2",
     "types-PyYAML>=6.0.12",
+    "types-tqdm>=4.67",
     "pytest-codspeed>=5.0",
     "pytest-cov>=6.1",
     "pytest>=8.4",
     "ruff>=0.11",
+    "scipy>=1.15",
+    "statsmodels>=0.14",
+    "tqdm>=4.67",
+]
+ref = [
+    "pandas>=2.2",
+    "pyarrow>=18.0",
+    "scipy>=1.15",
+    "statsmodels>=0.14",
+    "tqdm>=4.67",
 ]
 
 [project.scripts]
@@ -64,6 +82,7 @@ Changelog = "https://github.com/eneskemalergin/ProteoForge/blob/main/CHANGELOG.m
 
 [tool.hatch.version]
 source = "vcs"
+fallback-version = "0.0.2"
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/proteoforge/_version.py"
@@ -72,23 +91,33 @@ version-file = "src/proteoforge/_version.py"
 packages = ["src/proteoforge"]
 
 [tool.hatch.build.targets.sdist]
-include = ["/src", "/tests", "/benchmarks", "/docs", "/README.md", "/CHANGELOG.md", "/LICENSE"]
+include = [
+  "/src",
+  "/tests",
+  "/docs",
+  "/README.md",
+  "/CHANGELOG.md",
+  "/LICENSE",
+]
 
 [tool.uv]
-default-groups = ["dev"]
+default-groups = ["dev", "ref"]
 
 [tool.ruff]
 target-version = "py312"
 line-length = 88
-src = ["src", "tests", "benchmarks", "tools/compare", "noxfile.py"]
+src = [
+  "src",
+  "tests",
+  "noxfile.py",
+]
 exclude = ["src/proteoforge/_version.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "TCH", "PTH", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
-"benchmarks/**" = ["TC002", "TC003"]
-"tools/compare/**" = ["TC003", "E402"]
+"tests/test_progress.py" = ["TC002"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -100,15 +129,12 @@ warn_unused_ignores = true
 show_error_codes = true
 
 [[tool.mypy.overrides]]
-module = ["benchmarks.*", "proteoforge._version"]
+module = ["proteoforge._version"]
 ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = ["--strict-markers", "--strict-config"]
-markers = [
-    "benchmark: performance benchmarks (pytest-codspeed)",
-]
 
 [tool.coverage.run]
 branch = true

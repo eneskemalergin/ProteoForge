@@ -74,41 +74,58 @@ Defaults match canonical names (identity mapping). Omitted `column_map` fields u
 
 ## Fields reference
 
-### Used by `prepare()` today
+### Used by `prepare()`
 
-**`control_condition`** (required)
+**`control_condition`** (required)  
 Control condition key in `conditions`. Normalization subtracts each peptide's mean intensity in these samples.
 
-**`conditions`** (required)
+**`conditions`** (required)  
 Mapping of condition name to sample ID list. Defines scope and replicate structure.
 
-**`min_peptides`** (default `4`, minimum `2`)
+**`min_peptides`** (default `4`, minimum `2`)  
 Each protein must have at least this many unique `(protein_id, peptide_id)` pairs after scoping.
 
-**`input_is_log2`** (default `false`)
+**`input_is_log2`** (default `false`)  
 When `false`, intensities are log2-transformed during normalization. Set `true` when the input is already log2-scaled.
 
-**`column_map`** (optional)
+**`column_map`** (optional)  
 Source-to-canonical column renames for peptide tables.
 
-**`model`** (default `"rlm"`, one of `rlm`, `wls`, `ebayes`)
+**`model`** (default `"rlm"`, one of `rlm`, `wls`, `ebayes`)  
 Affects validation and which optional columns are retained on `PreparedDataset`:
 
-- `rlm`: provenance columns are dropped from the handoff unless present in input (not exposed as array properties).
-- `wls`: requires provenance (`is_real` / `is_complete_missing`) or `weight` on the peptide table before prepare completes.
-- `ebayes`: same provenance column retention as WLS for properties; weight derivation is not implemented in v0.0.1.
+- `rlm`: provenance columns are retained on `peptides` when present; `PreparedDataset.is_real` / `weight` properties return `None` (RLM does not use them).
+- `wls`: requires a `weight` column or both `is_real` and `is_complete_missing` before `prepare()` completes.
+- `ebayes`: rejected at `Config` construction (not implemented in v0.0.2).
 
-**`wls_biological_weight`** (default `0.5`, range `(0, 1]`)
-Reserved for WLS weight construction in a future release. Stored and validated only.
+**`wls_biological_weight`** (default `0.5`, range `(0, 1]`)  
+Weight for condition-wide imputed entries when deriving WLS weights from masks.
 
-### Reserved for v0.1.0 (validated now, not consumed by `prepare()`)
+### Used by `run_discordance()` (v0.0.2)
 
-These fields are part of the shared config schema for the full discovery pipeline. Setting them has no effect on normalization in v0.0.1:
+**`fdr`** (default `0.001`)  
+Global adjusted p-value threshold for `is_discordant`.
 
-- **`fdr`** (default `0.001`): FDR threshold for discordance testing
-- **`linkage`** (default `"ward"`): hierarchical clustering linkage
-- **`cut`** (default `"hybrid_outlier"`): cluster count strategy (`hybrid_outlier`, `fixed_height`, `dynamic_tree`)
-- **`n_jobs`** (default `-1`): parallel worker count (`-1` means all cores)
+**`correction_within`** (default `bonferroni`)  
+Within-protein correction method.
+
+**`correction_global`** (default `fdr_bh`)  
+Global correction method.
+
+**`n_jobs`** (default `-1`)  
+Parallel worker count for shape-group discordance (`-1` maps to `min(8, cpu_count // 2)`).
+
+These fields do not change normalization in `prepare()`.
+
+### Reserved (not yet implemented)
+
+Validated in config but not consumed by the current release:
+
+**`linkage`** (default `"ward"`)  
+Hierarchical clustering linkage.
+
+**`cut`** (default `"hybrid_outlier"`)  
+Cluster count strategy (`hybrid_outlier`, `fixed_height`, `dynamic_tree`).
 
 ## Loading and serialization
 
@@ -128,13 +145,3 @@ JSON Schema for tooling and editors:
 schema = Config.to_json_schema()
 config.write_json_schema("config.schema.json")
 ```
-
-PyYAML is a core dependency (`pyyaml` in project requirements).
-
-## Deprecated: standalone design files
-
-`read_design()` and separate CSV design files are deprecated. Put the sample-to-condition map in `Config.conditions`. `design_from_frame()` remains for tests and ad hoc Polars tables.
-
-## Errors
-
-Invalid config raises `ProteoForgeValidationError` with the failing field named in the message (unknown control key, duplicate sample across conditions, too few replicates, and similar).

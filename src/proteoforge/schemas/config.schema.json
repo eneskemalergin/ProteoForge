@@ -99,6 +99,30 @@
       "exclusiveMinimum": 0,
       "maximum": 1,
       "default": 0.5
+    },
+    "correction_within": {
+      "type": "string",
+      "enum": [
+        "bonferroni",
+        "holm",
+        "hochberg",
+        "fdr",
+        "fdr_bh",
+        "BY"
+      ],
+      "default": "bonferroni"
+    },
+    "correction_global": {
+      "type": "string",
+      "enum": [
+        "bonferroni",
+        "holm",
+        "hochberg",
+        "fdr",
+        "fdr_bh",
+        "BY"
+      ],
+      "default": "fdr_bh"
     }
   },
   "additionalProperties": false

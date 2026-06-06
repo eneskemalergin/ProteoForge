@@ -1,6 +1,6 @@
 # Prepare
 
-`prepare()` validates peptide input, applies control-relative normalization, and returns a `PreparedDataset`. This is the main entry point for v0.0.1.
+`prepare()` validates peptide input, applies control-relative normalization, and returns a `PreparedDataset`. This is the Module 1 entry point (v0.0.1+); pass the result to `run_discordance()` for Module 2 (v0.0.2+).
 
 Public API:
 
@@ -57,26 +57,19 @@ Output shape: long table with one row per `(protein_id, peptide_id, sample_id)`.
 
 Failures raise `ProteoForgeValidationError` unless noted as warnings.
 
-**Design and scope**
-
-- Every sample in `config.conditions` must appear in the peptide table after scoping
-- Samples in the table but not in config are dropped (warning lists up to 8 IDs)
-- At least two conditions, each with at least two samples (also enforced on `Config`)
-
-**Table structure**
-
-- Required columns: `protein_id`, `peptide_id`, `sample_id`, `condition`, `intensity`
-- Unique primary key `(protein_id, peptide_id, sample_id)`
-- `intensity` must be numeric with no NaN or infinity
-
-**Coverage**
-
-- Each protein must have at least `min_peptides` unique peptides
-- No peptide row set may be entirely NaN on intensity
-
-**WLS**
-
-- When `model="wls"`, the table must include provenance columns or `weight` after attach
+- **Design and scope**
+    - Every sample in `config.conditions` must appear in the peptide table after scoping
+    - Samples in the table but not in config are dropped (warning lists up to 8 IDs)
+    - At least two conditions, each with at least two samples (also enforced on `Config`)
+- **Table structure**
+    - Required columns: `protein_id`, `peptide_id`, `sample_id`, `condition`, `intensity`
+    - Unique primary key `(protein_id, peptide_id, sample_id)`
+    - `intensity` must be numeric with no NaN or infinity
+- **Coverage**
+    - Each protein must have at least `min_peptides` unique peptides
+    - No peptide row set may be entirely NaN on intensity
+- **WLS**
+    - When `model="wls"`, the table must include `weight` or both `is_real` and `is_complete_missing` after attach
 
 **Warnings (non-fatal)**
 
@@ -94,16 +87,16 @@ Failures raise `ProteoForgeValidationError` unless noted as warnings.
 
 ## Model-specific handoff
 
-`PreparedDataset` properties `is_real`, `is_complete_missing`, and `weight` return NumPy arrays aligned to `peptides` rows only when `config.model` is `wls` or `ebayes` and the columns exist. For `rlm`, these properties return `None` even if columns were present in input.
+`PreparedDataset` properties `is_real`, `is_complete_missing`, and `weight` return NumPy arrays aligned to `peptides` rows only when `config.model` is `wls` and the columns exist. For `rlm`, these properties return `None` even if provenance columns are retained on `peptides`.
 
-Normalization itself does not branch on `model` in v0.0.1. The field gates provenance retention and future discordance backends.
+For `model="wls"`, `prepare()` requires a `weight` column or **both** `is_real` and `is_complete_missing`.
+
+Normalization itself does not branch on `model`. The field gates provenance validation and selects the discordance backend in `run_discordance()` (RLM and WLS in v0.0.2).
 
 ## Errors and exceptions
 
-| Exception | Typical cause |
-| --------- | ------------- |
-| `ProteoForgeValidationError` | Failed design, duplicate keys, missing samples, WLS without provenance, normalization preconditions |
-| `ProteoForgeIOError` | Bad file path or format (file entry points only) |
+- **`ProteoForgeValidationError`:** failed design, duplicate keys, missing samples, WLS without sufficient provenance, `model='ebayes'`, normalization preconditions
+- **`ProteoForgeIOError`:** bad file path or format (file entry points only)
 
 Message text includes offending keys, sample IDs, or protein examples where applicable.
 
@@ -112,4 +105,5 @@ Message text includes offending keys, sample IDs, or protein examples where appl
 - [Configuration](config.md): YAML and design rules
 - [Input and output](io.md): formats and harmonization
 - [Normalization](normalization.md): transform details
+- [Discordance](discordance.md): Module 2 entry point
 - [PreparedDataset](prepared-dataset.md): output schema

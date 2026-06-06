@@ -4,12 +4,10 @@ ProteoForge expects a **long-format** peptide intensity table: one row per `(pro
 
 ## Supported file formats
 
-| Function | Parquet | CSV | TSV |
-| -------- | ------- | --- | --- |
-| `read_peptides()` | yes | yes | yes |
-| `prepare_from_parquet()` | yes | no | no |
-| `read_provenance()` | yes | yes | yes |
-| `read_fasta()` | n/a | n/a | n/a (FASTA only) |
+- **`read_peptides()`:** Parquet, CSV, TSV
+- **`prepare_from_parquet()`:** Parquet only
+- **`read_provenance()`:** Parquet, CSV, TSV
+- **`read_fasta()`:** FASTA only
 
 Parquet is preferred for large tables. `prepare_from_parquet()` lazy-scans, projects columns from `column_map`, and filters to configured samples before materialization.
 
@@ -51,7 +49,12 @@ For imputation-aware modeling (WLS and empirical-Bayes paths):
 - **`is_complete_missing`**: `true` if the value stands in for condition-wide missingness
 - **`weight`**: precomputed per-observation weight
 
-These may live in the main peptide file or in a separate table joined via `prepare(..., provenance=...)`. When `model="wls"`, at least one provenance signal (`is_real` / `is_complete_missing` or `weight`) must be present after attach.
+These may live in the main peptide file or in a separate table joined via `prepare(..., provenance=...)`. When `model="wls"`, provide either:
+
+- a precomputed **`weight`** column, or
+- **both** **`is_real`** and **`is_complete_missing`** (mask-derived tiered weights)
+
+A single mask column alone is not sufficient and `prepare()` will reject the input.
 
 ## Column harmonization
 
@@ -107,7 +110,7 @@ dataset = prepare(peptides, config, provenance=masks)
 
 ## FASTA
 
-`read_fasta()` returns a minimal Polars table with columns `entry` (header without `>`) and `sequence`. Full sequence annotation is not part of v0.0.1; this loader exists for early integration tests and future sequence modules.
+`read_fasta()` returns a minimal Polars table with columns `entry` (header without `>`) and `sequence`. Full sequence annotation is not part of v0.0.2; this loader exists for early integration tests and future sequence modules.
 
 ## Deprecated helpers
 

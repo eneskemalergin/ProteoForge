@@ -13,3 +13,7 @@ class ProteoForgeValidationError(ProteoForgeError):
 
 class ProteoForgeIOError(ProteoForgeError):
     """Raised when a file cannot be read or parsed."""
+
+
+class ProteoForgeParallelFallbackWarning(UserWarning):
+    """Parallel discordance fitting fell back to the serial path."""

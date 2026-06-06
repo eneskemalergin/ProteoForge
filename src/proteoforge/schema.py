@@ -15,6 +15,7 @@ INTENSITY = "intensity"
 IS_REAL = "is_real"
 IS_COMPLETE_MISSING = "is_complete_missing"
 WEIGHT = "weight"
+FIT_STATUS = "fit_status"
 
 DESIGN_SAMPLE_ID = "sample_id"
 DESIGN_CONDITION = "condition"

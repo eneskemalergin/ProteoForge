@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import polars as pl
 import pytest
 
@@ -17,14 +18,6 @@ def test_prepare_happy_path(minimal_peptides_frame, minimal_config) -> None:
     assert dataset.condition_levels[0] == "control"
     assert dataset.peptides.height == 32
     assert "intensity_normalized" in dataset.peptides.columns
-
-
-def test_config_rejects_control_not_in_conditions() -> None:
-    with pytest.raises(ProteoForgeValidationError, match="not a key in conditions"):
-        Config(
-            control_condition="missing",
-            conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
-        )
 
 
 def test_prepare_rejects_too_few_peptides(
@@ -71,11 +64,20 @@ def test_prepare_filters_extra_samples(minimal_peptides_frame) -> None:
 
 def test_prepare_from_files(fixtures_dir) -> None:
     from proteoforge import Config, prepare_from_parquet
+    from proteoforge._normalize import NORMALIZED_INTENSITY
 
     config = Config.from_yaml_path(fixtures_dir / "minimal_config.yaml")
     dataset = prepare_from_parquet(fixtures_dir / "minimal_long.parquet", config)
     assert dataset.peptides.height == 32
     assert dataset.intensity_normalized.shape == (32,)
+    control = dataset.peptides.filter(pl.col("sample_id").is_in(["S1", "S2"]))
+    control_means = (
+        control.group_by(["protein_id", "peptide_id"])
+        .agg(pl.col(NORMALIZED_INTENSITY).mean())
+        .get_column(NORMALIZED_INTENSITY)
+        .to_numpy()
+    )
+    np.testing.assert_allclose(control_means, 0.0, atol=1e-10)
 
 
 def test_prepare_read_peptides_then_prepare(fixtures_dir) -> None:
@@ -96,9 +98,19 @@ def test_prepare_wls_requires_provenance(
     config = minimal_config.replace(model="wls")
     with pytest.raises(
         ProteoForgeValidationError,
-        match="model='wls' requires provenance",
+        match="model='wls' requires",
     ):
         prepare(minimal_peptides_frame, config)
+
+
+def test_prepare_wls_rejects_single_mask_column(
+    minimal_peptides_frame,
+    minimal_config,
+) -> None:
+    frame = minimal_peptides_frame.with_columns(pl.lit(True).alias("is_real"))
+    config = minimal_config.replace(model="wls")
+    with pytest.raises(ProteoForgeValidationError, match="both is_real"):
+        prepare(frame, config)
 
 
 def test_prepare_with_provenance_columns(
@@ -131,6 +143,61 @@ def test_prepare_skips_provenance_for_rlm(
     assert dataset.is_complete_missing is None
 
 
+def test_prepare_rejects_missing_config_sample(minimal_peptides_frame) -> None:
+    config = Config(
+        control_condition="control",
+        conditions={"control": ("S1", "S2"), "treated": ("S3", "S4", "S5")},
+    )
+    with pytest.raises(ProteoForgeValidationError, match="missing from the peptide"):
+        prepare(minimal_peptides_frame, config)
+
+
+def test_prepare_rejects_non_finite_intensity(
+    minimal_peptides_frame,
+    minimal_config,
+) -> None:
+    bad = minimal_peptides_frame.with_columns(
+        pl.when(pl.col("sample_id") == "S1")
+        .then(float("inf"))
+        .otherwise(pl.col("intensity"))
+        .alias("intensity")
+    )
+    with pytest.raises(ProteoForgeValidationError, match="non-finite"):
+        prepare(bad, minimal_config)
+
+
+def test_prepare_rejects_nan_intensity(minimal_config) -> None:
+    frame = pl.DataFrame(
+        {
+            "protein_id": ["P1"] * 4 + ["P2"] * 4,
+            "peptide_id": ["A"] * 4 + ["B"] * 4,
+            "sample_id": ["S1", "S2", "S3", "S4"] * 2,
+            "intensity": [float("nan")] * 4 + [1.0, 2.0, 3.0, 4.0],
+        }
+    )
+    with pytest.raises(ProteoForgeValidationError, match="non-finite"):
+        prepare(frame, minimal_config)
+
+
+def test_prepare_with_separate_provenance_frame(
+    minimal_peptides_frame,
+    minimal_config,
+) -> None:
+    provenance = minimal_peptides_frame.select(
+        "protein_id",
+        "peptide_id",
+        "sample_id",
+    ).with_columns(
+        pl.lit(True).alias("is_real"),
+        pl.lit(False).alias("is_complete_missing"),
+        pl.lit(1.0).alias("weight"),
+    )
+    config = minimal_config.replace(model="wls")
+    dataset = prepare(minimal_peptides_frame, config, provenance=provenance)
+    assert dataset.weight is not None
+    assert dataset.is_real is not None
+
+
 def test_prepare_lazy_frame_matches_eager(
     minimal_peptides_frame,
     minimal_config,
@@ -138,12 +205,3 @@ def test_prepare_lazy_frame_matches_eager(
     eager = prepare(minimal_peptides_frame, minimal_config)
     lazy = prepare(minimal_peptides_frame.lazy(), minimal_config)
     assert eager.peptides.equals(lazy.peptides)
-
-
-def test_prepare_from_parquet(fixtures_dir) -> None:
-    from proteoforge import prepare_from_parquet
-
-    config = Config.from_yaml_path(fixtures_dir / "minimal_config.yaml")
-    dataset = prepare_from_parquet(fixtures_dir / "minimal_long.parquet", config)
-    assert dataset.peptides.height == 32
-    assert dataset.intensity_normalized.shape == (32,)

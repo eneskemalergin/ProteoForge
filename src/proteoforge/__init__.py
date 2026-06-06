@@ -2,12 +2,13 @@
 ProteoForge public API.
 
 Exports configuration, prepare entry points, typed handoff objects, and
-fixture loading for tests and benchmarks.
+fixture loading for tests and examples.
 """
 
 from importlib.metadata import PackageNotFoundError, version
 
 from proteoforge._config import Config
+from proteoforge.discordance import DiscordanceResult, run_discordance
 from proteoforge.fixture import FixtureBundle, load_fixture_bundle
 from proteoforge.prepare import prepare, prepare_from_parquet, validate_and_prepare
 from proteoforge.types import ColumnMap, DesignTable, PreparedDataset
@@ -15,17 +16,19 @@ from proteoforge.types import ColumnMap, DesignTable, PreparedDataset
 try:
     __version__ = version("proteoforge")
 except PackageNotFoundError:
-    __version__ = "0.0.0+unknown"
+    __version__ = "0.0.2"
 
 __all__ = [
     "ColumnMap",
     "Config",
     "DesignTable",
+    "DiscordanceResult",
     "FixtureBundle",
     "PreparedDataset",
     "__version__",
     "load_fixture_bundle",
     "prepare",
     "prepare_from_parquet",
+    "run_discordance",
     "validate_and_prepare",
 ]

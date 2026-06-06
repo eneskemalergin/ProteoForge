@@ -1,40 +1,19 @@
-# Disabled during early scaffolding. Re-enable push/PR triggers when benchmarks matter.
+# Disabled until performance regression gates are reintroduced.
 name: CodSpeed
 
 on:
   workflow_dispatch:
-# push:
-#   branches: [main]
-# pull_request:
-#   branches: [main]
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   benchmarks:
-    name: Run benchmarks
+    name: Benchmarks (deferred)
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v8.2.0
-        with:
-          python-version: "3.13"
-
-      - name: Install dependencies
-        run: uv sync
-
-      - name: Run benchmarks
-        uses: CodSpeedHQ/action@v4
-        with:
-          mode: simulation
-          run: uv run pytest benchmarks/ --codspeed
+      - name: Note
+        run: echo "CodSpeed benchmarks are deferred. Re-enable when performance gates return."

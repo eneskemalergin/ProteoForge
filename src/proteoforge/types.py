@@ -164,3 +164,48 @@ class PreparedDataset:
         return (
             self.peptides.get_column(WEIGHT).to_numpy().astype(np.float64, copy=False)
         )
+
+
+@dataclass(frozen=True)
+class DiscordanceResult:
+    """
+    Per-peptide discordance outcome for Phase 3 handoff.
+
+    The ``table`` holds one row per ``(protein_id, peptide_id)`` with the raw
+    interaction p-value, the within-protein adjusted value, the global adjusted
+    value, and the discordance flag. Keys are stable; Phase 3 joins on them
+    without re-fitting.
+
+    Attributes
+    ----------
+    config
+        Frozen configuration used for the run.
+    table
+        Long result frame with columns ``protein_id``, ``peptide_id``,
+        ``raw_p_value``, ``within_p_value``, ``adjusted_p_value``,
+        ``is_discordant``, and ``fit_status``.
+    metadata
+        Run statistics: counts, model, correction methods, ``skip_reason_counts``,
+        and parallel fitting fields (``n_jobs_requested``, ``n_jobs_effective``,
+        ``parallel_fallback``, ``parallel_fallback_reason``).
+    """
+
+    config: Config
+    table: pl.DataFrame
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def n_discordant(self) -> int:
+        """Number of peptides flagged discordant."""
+        from proteoforge._discordance import IS_DISCORDANT
+
+        return int(self.table.get_column(IS_DISCORDANT).sum())
+
+    @property
+    def discordant(self) -> pl.DataFrame:
+        """Subset of the table flagged discordant."""
+        import polars as pl
+
+        from proteoforge._discordance import IS_DISCORDANT
+
+        return self.table.filter(pl.col(IS_DISCORDANT))

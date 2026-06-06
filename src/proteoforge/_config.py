@@ -36,6 +36,8 @@ class Config:
     cut: CutStrategy = "hybrid_outlier"
     n_jobs: int = -1
     wls_biological_weight: float = 0.5
+    correction_within: str = "bonferroni"
+    correction_global: str = "fdr_bh"
 
     def __post_init__(self) -> None:
         if not self.control_condition.strip():
@@ -93,6 +95,21 @@ class Config:
         if not 0.0 < self.wls_biological_weight <= 1.0:
             msg = "wls_biological_weight must be in (0, 1]."
             raise ProteoForgeValidationError(msg)
+        if self.model == "ebayes":
+            msg = "model='ebayes' is not implemented in v0.0.2. Use 'rlm' or 'wls'."
+            raise ProteoForgeValidationError(msg)
+
+        from proteoforge._correction import VALID_METHODS
+
+        for field_name in ("correction_within", "correction_global"):
+            method = getattr(self, field_name)
+            if method not in VALID_METHODS or method in (None, "none"):
+                valid = sorted(str(m) for m in VALID_METHODS if m not in (None, "none"))
+                msg = (
+                    f"{field_name} '{method}' is not a supported correction "
+                    f"method. Valid: {valid}."
+                )
+                raise ProteoForgeValidationError(msg)
 
     @property
     def condition_levels(self) -> tuple[str, ...]:
@@ -165,6 +182,10 @@ class Config:
                 raise ProteoForgeValidationError(msg)
             conditions[str(condition)] = tuple(str(sample) for sample in samples)
 
+        if "control_condition" not in data:
+            msg = "Config must include 'control_condition'."
+            raise ProteoForgeValidationError(msg)
+
         return cls(
             control_condition=str(data["control_condition"]),
             conditions=conditions,
@@ -177,6 +198,8 @@ class Config:
             cut=data.get("cut", "hybrid_outlier"),
             n_jobs=int(data.get("n_jobs", -1)),
             wls_biological_weight=float(data.get("wls_biological_weight", 0.5)),
+            correction_within=str(data.get("correction_within", "bonferroni")),
+            correction_global=str(data.get("correction_global", "fdr_bh")),
         )
 
     def to_yaml(self) -> str:
@@ -272,6 +295,16 @@ class Config:
                     "exclusiveMinimum": 0,
                     "maximum": 1,
                     "default": 0.5,
+                },
+                "correction_within": {
+                    "type": "string",
+                    "enum": ["bonferroni", "holm", "hochberg", "fdr", "fdr_bh", "BY"],
+                    "default": "bonferroni",
+                },
+                "correction_global": {
+                    "type": "string",
+                    "enum": ["bonferroni", "holm", "hochberg", "fdr", "fdr_bh", "BY"],
+                    "default": "fdr_bh",
                 },
             },
             "additionalProperties": False,

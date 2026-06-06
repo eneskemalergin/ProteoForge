@@ -2,9 +2,12 @@
 tmp/
 ref/
 dev/
-real/
 plan/
-benchmarks/
+
+# Large data (parquets only; YAML and performance JSON under data/ commit)
+data/ 
+# data/local/
+# data/expected/**/*.parquet
 
 # Python
 __pycache__/

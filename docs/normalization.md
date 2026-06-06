@@ -23,27 +23,23 @@ Only two config fields affect normalization today:
 - **`control_condition`**: which samples in `conditions` define the baseline in step 3
 - **`input_is_log2`**: skip log2 when intensities are already log-transformed
 
-`model`, `fdr`, clustering options, and parallel settings do not change normalization in v0.0.1.
+`model`, `fdr`, clustering options, and parallel settings do not change normalization in v0.0.2. They apply in `run_discordance()` and future clustering modules.
 
 ## Implementation notes
 
 The long-format implementation uses Polars window expressions and a grouped join for control means. It does not pivot to wide layout during `prepare()`. Row order matches the validated input; identity is `(protein_id, peptide_id, sample_id)`.
 
-A wide NumPy implementation (`normalize_control_relative()`) exists for unit tests and golden comparisons. It is not used in the prepare pipeline.
+A wide NumPy implementation (`normalize_control_relative()`) exists for unit tests and regression checks. It is not used in the prepare pipeline.
 
 ## Failure modes
 
-| Condition | Result |
-| --------- | ------ |
-| Empty control sample list | Error |
-| Non-positive intensity with `input_is_log2=false` | Error |
-| Zero standard deviation for any sample after log2 | Error (constant or degenerate sample column) |
+- **Empty control sample list:** error
+- **Non-positive intensity with `input_is_log2=false`:** error
+- **Zero standard deviation for any sample after log2:** error (constant or degenerate sample column)
 
 ## Numerical reference
 
-Normalization matches `against_condition` in the [ProteoForge analysis repository](https://github.com/LangeLab/ProteoForge_Analysis/blob/main/ProteoForge/normalize.py) (v0.7.0). Local parity checks against that implementation live under `tools/compare/` and are optional for package users.
-
-On the complete-real benchmark fixture (~467k rows), per-key maximum absolute difference is about 1.2×10⁻¹³ at tolerance `atol=1e-11`.
+Normalization matches `against_condition` in the [ProteoForge analysis repository](https://github.com/LangeLab/ProteoForge_Analysis/blob/main/ProteoForge/normalize.py) (v0.7.0). Small regression tests in `tests/test_golden_normalize.py` lock the algorithm on committed fixtures.
 
 ## Output column
 

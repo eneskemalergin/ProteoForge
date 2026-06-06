@@ -19,23 +19,22 @@
     <a href="#installation"><img src="https://img.shields.io/badge/python-3.12--3.15-f59e0b?style=for-the-badge" alt="Python 3.12-3.15" /></a>
     <a href="#installation"><img src="https://img.shields.io/badge/numpy-2.2%2B-2563eb?style=for-the-badge&logo=numpy&logoColor=white" alt="NumPy 2.2+" /></a>
     <a href="#installation"><img src="https://img.shields.io/badge/polars-1.26%2B-cd7c2f?style=for-the-badge&logo=polars&logoColor=white" alt="Polars 1.26+" /></a>
-    <a href="#installation"><img src="https://img.shields.io/badge/scipy-1.15%2B-8b5cf6?style=for-the-badge&logo=scipy&logoColor=white" alt="SciPy 1.15+" /></a>
 </p>
 <p align="center">
     <a href="https://github.com/eneskemalergin/ProteoForge"><img src="https://img.shields.io/badge/status-in%20development-0f766e?style=for-the-badge" alt="In development" /></a>
 </p>
 
+> **Note:** Modules 1 and 2 (prepare and discordance) are functional. Clustering, dPF assignment, and the unified discovery API are not implemented yet.
+
 ProteoForge discovers differential proteoforms from an imputed peptide matrix and a condition design with a control. Peptides that break rank with their siblings are grouped into dPF units: canonical signal (`dPF_0`), multi-peptide proteoforms (`dPF_1+`), and singleton discordants (`dPF_-1`).
 
 The package does not impute, search, or quantify. Upstream imputation is required.
 
-**Available now (v0.0.1):** long-format peptide I/O, validation, and control-relative normalization via `prepare()`.
-
-**In progress toward v0.1.0:** discordance modeling, clustering, dPF assignment, `discover()`, CLI, and PyPI release.
+**Available now (v0.0.2):** long-format peptide I/O, input validation, control-relative normalization (`prepare()`), and peptide discordance (`run_discordance()`) with core **RLM** and **WLS** backends.
 
 ## Pipeline
 
-Four modules from the ProteoForge method. Module 1 is implemented; the rest are planned for v0.1.0.
+Four modules from the ProteoForge method. Modules 1 and 2 ship in v0.0.2; later modules are planned but not available in this release.
 
 ```mermaid
 flowchart LR
@@ -53,17 +52,15 @@ flowchart LR
   P --> OUT
 ```
 
-**Planned capabilities for v0.1.0**
+**Shipped in v0.0.2 (Module 2)**
 
-- RLM default; WLS (imputation-aware weights) and empirical-Bayes backends
-- Dynamic hierarchical clustering (`hybrid_outlier_cut`)
-- Peptide-to-dPF mapping and collapsed dPF quantity matrix for downstream tools such as [QuEStVar](https://github.com/eneskemalergin/QuEStVar)
-- FASTA, peptide positions, UniProt and iPTMnet overlays; HTML report and core plots
-- Python API, YAML config, and Typer CLI
+- RLM (default) and WLS (mask-derived or precomputed weights)
+- Two-step multiple-testing correction, shape-group batching, parallel RLM pool
+- Unit tests on small synthetic and committed fixtures
 
 ## Installation
 
-Python 3.12 to 3.15. Runtime: NumPy 2.2+, Polars 1.26+, SciPy 1.15+.
+Python 3.12 to 3.15. Runtime: NumPy 2.2+, Polars 1.26+, PyYAML, tqdm.
 
 PyPI follows v0.1.0. Until then, install from source:
 
@@ -83,16 +80,18 @@ pip install -e ".[cli,plots]"
 
 ### Available now
 
-Load a long-format peptide parquet, validate, and normalize in one call. Experimental design and sample scope live in the config YAML, not a separate design file.
+Load a long-format peptide parquet, validate, normalize, and run discordance. Experimental design and sample scope live in the config YAML, not a separate design file.
 
 ```python
-from proteoforge import Config, prepare_from_parquet
+from proteoforge import Config, prepare_from_parquet, run_discordance
 
 config = Config.from_yaml_path("config.yaml")
 dataset = prepare_from_parquet("peptides.parquet", config)
+result = run_discordance(dataset)
 
 dataset.peptides.height  # n_peptides * n_samples long rows
-dataset.intensity_normalized  # 1-D, aligned to peptides rows
+result.n_discordant
+result.discordant
 ```
 
 Example `config.yaml`:
@@ -110,7 +109,9 @@ For in-memory tables use `prepare(df, config)` or `prepare(lazy_frame, config)`.
 
 To inspect harmonized long-format rows without normalizing, use `read_peptides(path, config)`.
 
-### Planned discovery API
+### Not yet available
+
+The unified discovery API below is planned but not implemented in v0.0.2. Use `prepare()` + `run_discordance()` today.
 
 ```python
 import proteoforge as pf
@@ -130,25 +131,41 @@ proteoforge discover peptides.parquet --config config.yaml -o results/
 
 ## Documentation
 
-Full docs for v0.0.1 (configuration, I/O, prepare, normalization):
+Full docs for v0.0.2:
 
 - [Documentation home](docs/index.md)
 - [Configuration](docs/config.md)
 - [Input and output](docs/io.md)
 - [Prepare](docs/prepare.md)
 - [Normalization](docs/normalization.md)
+- [Discordance](docs/discordance.md)
 - [PreparedDataset](docs/prepared-dataset.md)
 - [Changelog](CHANGELOG.md)
 
-Local reference comparison against the [manuscript analysis code](https://github.com/LangeLab/ProteoForge_Analysis) lives under `tools/compare/` (not required for package use).
+Build the docs site locally:
+
+```bash
+uv sync --extra docs
+uv run mkdocs serve
+```
 
 ## Development
 
 ```bash
 uv sync
 uv run pre-commit install
-uv run pytest
 ```
+
+Mirror CI before pushing:
+
+```bash
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy
+uv run pytest tests --cov=proteoforge --cov-report=term-missing
+```
+
+Tests use small fixtures in `tests/fixtures/`; see `tests/README.md`.
 
 Tag `vX.Y.Z` to trigger trusted PyPI publish (`hatch-vcs` versioning).
 
@@ -156,7 +173,7 @@ Tag `vX.Y.Z` to trigger trusted PyPI publish (`hatch-vcs` versioning).
 
 - ProteoForge manuscript (bioRxiv 2025)
 - [PeCorA](https://doi.org/10.1021/acs.jproteome.0c00602), [COPF](https://doi.org/10.1038/s41467-021-24030-x)
-- [ProteoForge analysis repository](https://github.com/LangeLab/ProteoForge_Analysis) (manuscript scripts; reference for numerical parity)
+- [ProteoForge analysis repository](https://github.com/LangeLab/ProteoForge_Analysis) (manuscript reference implementation)
 
 ## License
 

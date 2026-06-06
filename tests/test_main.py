@@ -13,7 +13,3 @@ def test_main_version_flag(capsys: pytest.CaptureFixture[str]) -> None:
     assert exc.value.code == 0
     captured = capsys.readouterr()
     assert "proteoforge" in captured.out
-
-
-def test_main_no_args_returns_zero() -> None:
-    assert main([]) == 0

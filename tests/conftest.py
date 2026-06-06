@@ -1,4 +1,7 @@
-"""Shared pytest fixtures."""
+"""Shared pytest fixtures.
+
+Use only small synthetic data here or under tests/fixtures/. See tests/README.md.
+"""
 
 from __future__ import annotations
 
