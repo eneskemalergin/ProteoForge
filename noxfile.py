@@ -7,6 +7,7 @@ import nox
 nox.options.default_venv_backend = "uv"
 nox.options.sessions = ["lint", "typecheck", "tests"]
 
+
 @nox.session
 def lint(session: nox.Session) -> None:
     session.run("ruff", "check", ".")
