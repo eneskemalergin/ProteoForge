@@ -7,7 +7,8 @@ import polars as pl
 import pytest
 
 from proteoforge import Config, prepare
-from proteoforge._discordance import ADJUSTED_P_VALUE, RAW_P_VALUE, run_discordance
+from proteoforge._discordance import run_discordance
+from proteoforge.schema import ADJUSTED_P_VALUE, RAW_P_VALUE
 
 CONDITIONS = {"control": ("S1", "S2", "S3"), "treated": ("S4", "S5", "S6")}
 

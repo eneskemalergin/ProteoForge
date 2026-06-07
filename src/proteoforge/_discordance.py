@@ -33,17 +33,20 @@ from proteoforge._progress import WeightedProgress
 from proteoforge.models import select_model
 from proteoforge.models._fit_status import count_statuses
 from proteoforge.models._protocol import build_design_stack
-from proteoforge.schema import FIT_STATUS, PEPTIDE_ID, PROTEIN_ID
+from proteoforge.schema import (
+    ADJUSTED_P_VALUE,
+    FIT_STATUS,
+    IS_DISCORDANT,
+    PEPTIDE_ID,
+    PROTEIN_ID,
+    RAW_P_VALUE,
+    WITHIN_P_VALUE,
+)
 from proteoforge.types import DiscordanceResult
 
 if TYPE_CHECKING:
     from proteoforge.models._protocol import DiscordanceModel
     from proteoforge.types import PreparedDataset
-
-RAW_P_VALUE: str = "raw_p_value"
-WITHIN_P_VALUE: str = "within_p_value"
-ADJUSTED_P_VALUE: str = "adjusted_p_value"
-IS_DISCORDANT: str = "is_discordant"
 
 _BATCHING_STRATEGIES: frozenset[str] = frozenset({"scalar", "protein", "shape"})
 

@@ -6,7 +6,7 @@ import numpy as np
 import polars as pl
 
 from proteoforge import Config
-from proteoforge._normalize import NORMALIZED_INTENSITY
+from proteoforge.schema import NORMALIZED_INTENSITY
 from proteoforge.types import PreparedDataset
 
 

@@ -20,16 +20,14 @@ result.metadata    # counts, parallelism, skip_reason_counts
 
 Optional arguments:
 
-- `n_jobs` — overrides `config.n_jobs` for this call
-- `show_progress=True` — tqdm progress bar in an interactive terminal or notebook (auto-suppressed in CI or when `TQDM_DISABLE` is set)
+- `n_jobs`: overrides `config.n_jobs` for this call
+- `show_progress=True`: tqdm progress bar in an interactive terminal or notebook (auto-suppressed in CI or when `TQDM_DISABLE` is set)
 
 ## Models
 
-| Model | Status | Notes |
-|-------|--------|-------|
-| `rlm` | **Default** | Huber IRLS. Provenance columns optional; retained on `peptides` when present. |
-| `wls` | Supported | Mask-derived or precomputed weights. Requires `weight` or both `is_real` and `is_complete_missing` at `prepare()`. |
-| `ebayes` | Not implemented | Rejected at `Config` construction. |
+- `rlm` (default): Huber IRLS. Provenance columns optional; retained on `peptides` when present.
+- `wls`: mask-derived or precomputed weights. Requires `weight` or both `is_real` and `is_complete_missing` at `prepare()`.
+- `ebayes`: not implemented. Rejected at `Config` construction.
 
 Set `model` in [Configuration](config.md).
 
@@ -56,14 +54,12 @@ Discordance groups proteins by design shape (same condition layout and peptide c
 
 `DiscordanceResult.table` columns:
 
-| Column | Description |
-|--------|-------------|
-| `protein_id`, `peptide_id` | Keys |
-| `raw_p_value` | Uncorrected interaction p-value |
-| `within_p_value` | After within-protein correction |
-| `adjusted_p_value` | After global correction |
-| `is_discordant` | Passes global FDR threshold |
-| `fit_status` | Skip reason when a fit is not usable |
+- `protein_id`, `peptide_id`: peptide keys
+- `raw_p_value`: uncorrected interaction p-value
+- `within_p_value`: after within-protein correction
+- `adjusted_p_value`: after global correction
+- `is_discordant`: passes global FDR threshold
+- `fit_status`: skip reason when a fit is not usable
 
 `result.table` is sorted by `(protein_id, peptide_id)`. `PreparedDataset.peptides` keeps input row order. **Join on keys, not row index:**
 
@@ -77,6 +73,6 @@ joined = dataset.peptides.join(
 
 ## Related pages
 
-- [PreparedDataset](prepared-dataset.md) — input to discordance
-- [Configuration](config.md) — `model`, `fdr`, `n_jobs`, correction fields
-- [Prepare](prepare.md) — builds the handoff object
+- [PreparedDataset](prepared-dataset.md): input to discordance
+- [Configuration](config.md): `model`, `fdr`, `n_jobs`, correction fields
+- [Prepare](prepare.md): builds the handoff object

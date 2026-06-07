@@ -5,7 +5,7 @@ dev/
 plan/
 
 # Large data (parquets only; YAML and performance JSON under data/ commit)
-data/ 
+data/
 # data/local/
 # data/expected/**/*.parquet
 

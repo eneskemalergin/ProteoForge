@@ -66,8 +66,7 @@
       "type": "string",
       "enum": [
         "rlm",
-        "wls",
-        "ebayes"
+        "wls"
       ],
       "default": "rlm"
     },

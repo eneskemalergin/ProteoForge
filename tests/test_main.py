@@ -13,3 +13,9 @@ def test_main_version_flag(capsys: pytest.CaptureFixture[str]) -> None:
     assert exc.value.code == 0
     captured = capsys.readouterr()
     assert "proteoforge" in captured.out
+
+
+def test_main_prints_help_without_args(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main([]) == 0
+    captured = capsys.readouterr()
+    assert "v0.0.2 ships prepare" in captured.out

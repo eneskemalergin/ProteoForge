@@ -10,7 +10,14 @@ from proteoforge import __version__
 
 def build_parser() -> argparse.ArgumentParser:
     """Build the root argument parser for ``proteoforge``."""
-    parser = argparse.ArgumentParser(prog="proteoforge")
+    parser = argparse.ArgumentParser(
+        prog="proteoforge",
+        description=(
+            "ProteoForge differential proteoform discovery. "
+            "v0.0.2 ships prepare and discordance only; the discover "
+            "subcommand is not implemented yet."
+        ),
+    )
     parser.add_argument(
         "--version",
         action="version",
@@ -34,7 +41,10 @@ def main(argv: list[str] | None = None) -> int:
         Process exit code.
     """
     parser = build_parser()
-    parser.parse_args(argv if argv is not None else sys.argv[1:])
+    args = argv if argv is not None else sys.argv[1:]
+    parser.parse_args(args)
+    if not args:
+        parser.print_help()
     return 0
 
 

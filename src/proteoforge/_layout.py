@@ -19,9 +19,14 @@ import numpy.typing as npt
 import polars as pl
 
 from proteoforge._exceptions import ProteoForgeValidationError
-from proteoforge._normalize import NORMALIZED_INTENSITY
 from proteoforge._weights import row_weights
-from proteoforge.schema import CONDITION, PEPTIDE_ID, PROTEIN_ID, SAMPLE_ID
+from proteoforge.schema import (
+    CONDITION,
+    NORMALIZED_INTENSITY,
+    PEPTIDE_ID,
+    PROTEIN_ID,
+    SAMPLE_ID,
+)
 
 if TYPE_CHECKING:
     from proteoforge.types import PreparedDataset

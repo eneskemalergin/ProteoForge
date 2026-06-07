@@ -118,7 +118,7 @@ class PreparedDataset:
     @property
     def intensity_normalized(self) -> npt.NDArray[np.float64]:
         """Normalized intensities as a 1-D array aligned to ``peptides`` rows."""
-        from proteoforge._normalize import NORMALIZED_INTENSITY
+        from proteoforge.schema import NORMALIZED_INTENSITY
 
         return (
             self.peptides.get_column(NORMALIZED_INTENSITY)
@@ -197,7 +197,7 @@ class DiscordanceResult:
     @property
     def n_discordant(self) -> int:
         """Number of peptides flagged discordant."""
-        from proteoforge._discordance import IS_DISCORDANT
+        from proteoforge.schema import IS_DISCORDANT
 
         return int(self.table.get_column(IS_DISCORDANT).sum())
 
@@ -206,6 +206,6 @@ class DiscordanceResult:
         """Subset of the table flagged discordant."""
         import polars as pl
 
-        from proteoforge._discordance import IS_DISCORDANT
+        from proteoforge.schema import IS_DISCORDANT
 
         return self.table.filter(pl.col(IS_DISCORDANT))

@@ -64,7 +64,7 @@ def test_prepare_filters_extra_samples(minimal_peptides_frame) -> None:
 
 def test_prepare_from_files(fixtures_dir) -> None:
     from proteoforge import Config, prepare_from_parquet
-    from proteoforge._normalize import NORMALIZED_INTENSITY
+    from proteoforge.schema import NORMALIZED_INTENSITY
 
     config = Config.from_yaml_path(fixtures_dir / "minimal_config.yaml")
     dataset = prepare_from_parquet(fixtures_dir / "minimal_long.parquet", config)

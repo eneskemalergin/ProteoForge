@@ -70,10 +70,10 @@ cd ProteoForge
 uv sync
 ```
 
-Optional extras: `plots`, `interactive`, `accel`, `cli`, `docs`.
+Optional extras: `plots`, `interactive`, `accel`, `docs`. The `cli` extra is reserved for a future Typer CLI and is not used in v0.0.2.
 
 ```bash
-pip install -e ".[cli,plots]"
+pip install -e ".[plots,docs]"
 ```
 
 ## Quick start
@@ -165,7 +165,7 @@ uv run mypy
 uv run pytest tests --cov=proteoforge --cov-report=term-missing
 ```
 
-Tests use small fixtures in `tests/fixtures/`; see `tests/README.md`.
+Tests use small fixtures in `tests/fixtures/`.
 
 Tag `vX.Y.Z` to trigger trusted PyPI publish (`hatch-vcs` versioning).
 

@@ -6,7 +6,7 @@ import numpy as np
 import polars as pl
 
 from proteoforge import Config, prepare, run_discordance
-from proteoforge._discordance import IS_DISCORDANT
+from proteoforge.schema import IS_DISCORDANT
 
 
 def test_discordance_join_on_peptide_keys() -> None:

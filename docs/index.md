@@ -32,12 +32,12 @@ Modules 1 and 2 (green) ship in v0.0.2. Later modules are planned but not availa
 
 ## Reading order
 
-1. [Configuration](config.md) — experimental design, column mapping, YAML loading
-2. [Input and output](io.md) — supported formats, canonical columns, harmonization
-3. [Prepare](prepare.md) — `prepare()` and `prepare_from_parquet()` end to end
-4. [Normalization](normalization.md) — control-relative intensity transform (Module 1)
-5. [Discordance](discordance.md) — `run_discordance()` and WLS/RLM backends (Module 2)
-6. [PreparedDataset](prepared-dataset.md) — output contract between prepare and discordance
+1. [Configuration](config.md): experimental design, column mapping, YAML loading
+2. [Input and output](io.md): supported formats, canonical columns, harmonization
+3. [Prepare](prepare.md): `prepare()` and `prepare_from_parquet()` end to end
+4. [Normalization](normalization.md): control-relative intensity transform (Module 1)
+5. [Discordance](discordance.md): `run_discordance()` and WLS/RLM backends (Module 2)
+6. [PreparedDataset](prepared-dataset.md): output contract between prepare and discordance
 
 ## Quick example
 

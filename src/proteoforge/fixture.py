@@ -6,14 +6,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-import polars as pl
-
 from proteoforge._config import Config
-from proteoforge._exceptions import ProteoForgeValidationError
+from proteoforge._exceptions import ProteoForgeIOError, ProteoForgeValidationError
 from proteoforge.io import read_peptides
 from proteoforge.prepare import prepare_from_parquet
 
 if TYPE_CHECKING:
+    import polars as pl
+
     from proteoforge.types import PreparedDataset
 
 
@@ -35,8 +35,6 @@ class FixtureBundle:
         ProteoForge input parquet/csv (pipeline columns only).
     config_path
         ``Config`` YAML including embedded design.
-    benchmark_path
-        Optional parquet with evaluation columns (not passed to ``prepare()``).
     description
         Human-readable summary from the manifest.
     """
@@ -45,7 +43,6 @@ class FixtureBundle:
     name: str
     peptides_path: Path
     config_path: Path
-    benchmark_path: Path | None = None
     description: str = ""
 
     def load_config(self) -> Config:
@@ -56,20 +53,6 @@ class FixtureBundle:
         """Load harmonized peptide input table."""
         cfg = config or self.load_config()
         return read_peptides(self.peptides_path, cfg)
-
-    def load_benchmark_table(self) -> pl.DataFrame:
-        """
-        Load the benchmark table including ground-truth columns.
-
-        Raises
-        ------
-        ProteoForgeValidationError
-            If this fixture has no benchmark file.
-        """
-        if self.benchmark_path is None:
-            msg = f"Fixture '{self.name}' has no benchmark table."
-            raise ProteoForgeValidationError(msg)
-        return pl.read_parquet(self.benchmark_path)
 
     def prepare(self, config: Config | None = None) -> PreparedDataset:
         """Validate and normalize this fixture's peptide table."""
@@ -87,7 +70,6 @@ def load_fixture_bundle(manifest_path: str | Path) -> FixtureBundle:
         description: ...
         files:
           peptides: complete-real.parquet
-          benchmark: eval-labels.parquet  # optional ground-truth columns
           config: config.yaml
 
     Parameters
@@ -104,6 +86,8 @@ def load_fixture_bundle(manifest_path: str | Path) -> FixtureBundle:
     ------
     ProteoForgeValidationError
         If the manifest or referenced files are missing or invalid.
+    ProteoForgeIOError
+        If a manifest YAML file cannot be read.
     """
     path = Path(manifest_path)
     if path.is_dir():
@@ -134,16 +118,11 @@ def load_fixture_bundle(manifest_path: str | Path) -> FixtureBundle:
     peptides_path = _resolve_file(root, str(files["peptides"]), label="peptides")
     config_path = _resolve_file(root, str(files["config"]), label="config")
 
-    benchmark_path: Path | None = None
-    if "benchmark" in files and files["benchmark"] is not None:
-        benchmark_path = _resolve_file(root, str(files["benchmark"]), label="benchmark")
-
     return FixtureBundle(
         root=root,
         name=name,
         peptides_path=peptides_path,
         config_path=config_path,
-        benchmark_path=benchmark_path,
         description=description,
     )
 
@@ -165,4 +144,11 @@ def _load_yaml(path: Path) -> Any:
     except ImportError as exc:
         msg = "PyYAML is required to load fixture manifests."
         raise ProteoForgeValidationError(msg) from exc
-    return yaml.safe_load(path.read_text(encoding="utf-8"))
+    try:
+        return yaml.safe_load(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        msg = f"Fixture manifest not found: {path}"
+        raise ProteoForgeIOError(msg) from exc
+    except OSError as exc:
+        msg = f"Could not read fixture manifest: {path}"
+        raise ProteoForgeIOError(msg) from exc

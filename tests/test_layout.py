@@ -9,8 +9,13 @@ import pytest
 from proteoforge import Config, prepare
 from proteoforge._exceptions import ProteoForgeValidationError
 from proteoforge._layout import build_protein_blocks
-from proteoforge._normalize import NORMALIZED_INTENSITY
-from proteoforge.schema import CONDITION, PEPTIDE_ID, PROTEIN_ID, SAMPLE_ID
+from proteoforge.schema import (
+    CONDITION,
+    NORMALIZED_INTENSITY,
+    PEPTIDE_ID,
+    PROTEIN_ID,
+    SAMPLE_ID,
+)
 from proteoforge.types import PreparedDataset
 
 

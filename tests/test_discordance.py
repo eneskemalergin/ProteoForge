@@ -10,10 +10,6 @@ import pytest
 
 from proteoforge import Config, prepare
 from proteoforge._discordance import (
-    ADJUSTED_P_VALUE,
-    IS_DISCORDANT,
-    RAW_P_VALUE,
-    WITHIN_P_VALUE,
     _spawn_main_usable,
     run_discordance,
 )
@@ -21,7 +17,15 @@ from proteoforge._exceptions import (
     ProteoForgeParallelFallbackWarning,
     ProteoForgeValidationError,
 )
-from proteoforge.schema import FIT_STATUS, PEPTIDE_ID, PROTEIN_ID
+from proteoforge.schema import (
+    ADJUSTED_P_VALUE,
+    FIT_STATUS,
+    IS_DISCORDANT,
+    PEPTIDE_ID,
+    PROTEIN_ID,
+    RAW_P_VALUE,
+    WITHIN_P_VALUE,
+)
 
 CONDITIONS = {"control": ("S1", "S2", "S3"), "treated": ("S4", "S5", "S6")}
 SAMPLES = {

@@ -1,6 +1,6 @@
 """Shared pytest fixtures.
 
-Use only small synthetic data here or under tests/fixtures/. See tests/README.md.
+Use only small synthetic data here or under tests/fixtures/.
 """
 
 from __future__ import annotations

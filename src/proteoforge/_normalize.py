@@ -7,9 +7,13 @@ import numpy.typing as npt
 import polars as pl
 
 from proteoforge._exceptions import ProteoForgeValidationError
-from proteoforge.schema import INTENSITY, PEPTIDE_ID, PROTEIN_ID, SAMPLE_ID
-
-NORMALIZED_INTENSITY = "intensity_normalized"
+from proteoforge.schema import (
+    INTENSITY,
+    NORMALIZED_INTENSITY,
+    PEPTIDE_ID,
+    PROTEIN_ID,
+    SAMPLE_ID,
+)
 
 
 def normalize_control_relative(

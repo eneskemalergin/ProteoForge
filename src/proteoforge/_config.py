@@ -7,11 +7,16 @@ from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any, Literal, Self
 
-from proteoforge._exceptions import ProteoForgeValidationError
+from proteoforge._exceptions import ProteoForgeIOError, ProteoForgeValidationError
 from proteoforge.types import ColumnMap, DesignTable
 
 ModelName = Literal["rlm", "wls", "ebayes"]
 CutStrategy = Literal["hybrid_outlier", "fixed_height", "dynamic_tree"]
+
+_LOADABLE_MODELS: frozenset[str] = frozenset({"rlm", "wls"})
+_VALID_CUT_STRATEGIES: frozenset[str] = frozenset(
+    {"hybrid_outlier", "fixed_height", "dynamic_tree"}
+)
 
 
 @dataclass(frozen=True)
@@ -97,6 +102,16 @@ class Config:
             raise ProteoForgeValidationError(msg)
         if self.model == "ebayes":
             msg = "model='ebayes' is not implemented in v0.0.2. Use 'rlm' or 'wls'."
+            raise ProteoForgeValidationError(msg)
+        if self.model not in _LOADABLE_MODELS:
+            msg = (
+                f"model '{self.model}' is not supported. "
+                "Valid loadable models: 'rlm', 'wls'."
+            )
+            raise ProteoForgeValidationError(msg)
+        if self.cut not in _VALID_CUT_STRATEGIES:
+            valid = sorted(_VALID_CUT_STRATEGIES)
+            msg = f"cut '{self.cut}' is not supported. Valid: {valid}."
             raise ProteoForgeValidationError(msg)
 
         from proteoforge._correction import VALID_METHODS
@@ -232,10 +247,18 @@ class Config:
 
         Raises
         ------
+        ProteoForgeIOError
+            If the file does not exist.
         ProteoForgeValidationError
             If the file cannot be parsed or validation fails.
         """
-        return cls.from_yaml(Path(path).read_text(encoding="utf-8"))
+        config_path = Path(path)
+        try:
+            text = config_path.read_text(encoding="utf-8")
+        except FileNotFoundError as exc:
+            msg = f"Config file not found: {config_path}"
+            raise ProteoForgeIOError(msg) from exc
+        return cls.from_yaml(text)
 
     @classmethod
     def to_json_schema(cls) -> dict[str, Any]:
@@ -274,7 +297,7 @@ class Config:
                 },
                 "model": {
                     "type": "string",
-                    "enum": ["rlm", "wls", "ebayes"],
+                    "enum": ["rlm", "wls"],
                     "default": "rlm",
                 },
                 "fdr": {

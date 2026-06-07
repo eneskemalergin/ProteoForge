@@ -76,44 +76,20 @@ Defaults match canonical names (identity mapping). Omitted `column_map` fields u
 
 ### Used by `prepare()`
 
-**`control_condition`** (required)  
-Control condition key in `conditions`. Normalization subtracts each peptide's mean intensity in these samples.
-
-**`conditions`** (required)  
-Mapping of condition name to sample ID list. Defines scope and replicate structure.
-
-**`min_peptides`** (default `4`, minimum `2`)  
-Each protein must have at least this many unique `(protein_id, peptide_id)` pairs after scoping.
-
-**`input_is_log2`** (default `false`)  
-When `false`, intensities are log2-transformed during normalization. Set `true` when the input is already log2-scaled.
-
-**`column_map`** (optional)  
-Source-to-canonical column renames for peptide tables.
-
-**`model`** (default `"rlm"`, one of `rlm`, `wls`, `ebayes`)  
-Affects validation and which optional columns are retained on `PreparedDataset`:
-
-- `rlm`: provenance columns are retained on `peptides` when present; `PreparedDataset.is_real` / `weight` properties return `None` (RLM does not use them).
-- `wls`: requires a `weight` column or both `is_real` and `is_complete_missing` before `prepare()` completes.
-- `ebayes`: rejected at `Config` construction (not implemented in v0.0.2).
-
-**`wls_biological_weight`** (default `0.5`, range `(0, 1]`)  
-Weight for condition-wide imputed entries when deriving WLS weights from masks.
+- `control_condition` (required): control condition key in `conditions`. Normalization subtracts each peptide's mean intensity in these samples.
+- `conditions` (required): mapping of condition name to sample ID list. Defines scope and replicate structure.
+- `min_peptides` (default `4`, minimum `2`): each protein must have at least this many unique `(protein_id, peptide_id)` pairs after scoping.
+- `input_is_log2` (default `false`): when `false`, intensities are log2-transformed during normalization. Set `true` when the input is already log2-scaled.
+- `column_map` (optional): source-to-canonical column renames for peptide tables.
+- `model` (default `"rlm"`, one of `rlm`, `wls`, `ebayes`): affects validation and which optional columns are retained on `PreparedDataset`. `rlm` keeps provenance columns on `peptides` when present; `PreparedDataset.is_real` and `weight` return `None`. `wls` requires a `weight` column or both `is_real` and `is_complete_missing` before `prepare()` completes. `ebayes` is rejected at `Config` construction (not implemented in v0.0.2).
+- `wls_biological_weight` (default `0.5`, range `(0, 1]`): weight for condition-wide imputed entries when deriving WLS weights from masks.
 
 ### Used by `run_discordance()` (v0.0.2)
 
-**`fdr`** (default `0.001`)  
-Global adjusted p-value threshold for `is_discordant`.
-
-**`correction_within`** (default `bonferroni`)  
-Within-protein correction method.
-
-**`correction_global`** (default `fdr_bh`)  
-Global correction method.
-
-**`n_jobs`** (default `-1`)  
-Parallel worker count for shape-group discordance (`-1` maps to `min(8, cpu_count // 2)`).
+- `fdr` (default `0.001`): global adjusted p-value threshold for `is_discordant`.
+- `correction_within` (default `bonferroni`): within-protein correction method.
+- `correction_global` (default `fdr_bh`): global correction method.
+- `n_jobs` (default `-1`): parallel worker count for shape-group discordance (`-1` maps to `min(8, cpu_count // 2)`).
 
 These fields do not change normalization in `prepare()`.
 
@@ -121,11 +97,8 @@ These fields do not change normalization in `prepare()`.
 
 Validated in config but not consumed by the current release:
 
-**`linkage`** (default `"ward"`)  
-Hierarchical clustering linkage.
-
-**`cut`** (default `"hybrid_outlier"`)  
-Cluster count strategy (`hybrid_outlier`, `fixed_height`, `dynamic_tree`).
+- `linkage` (default `"ward"`): hierarchical clustering linkage.
+- `cut` (default `"hybrid_outlier"`): cluster count strategy (`hybrid_outlier`, `fixed_height`, `dynamic_tree`).
 
 ## Loading and serialization
 

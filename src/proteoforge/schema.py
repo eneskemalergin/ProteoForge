@@ -2,7 +2,7 @@
 Canonical column name constants for ProteoForge data contracts.
 
 Use these module-level strings instead of literal column names in validation,
-I/O, and normalization code.
+I/O, normalization, and discordance code.
 """
 
 from __future__ import annotations
@@ -12,10 +12,16 @@ PEPTIDE_ID = "peptide_id"
 SAMPLE_ID = "sample_id"
 CONDITION = "condition"
 INTENSITY = "intensity"
+NORMALIZED_INTENSITY = "intensity_normalized"
 IS_REAL = "is_real"
 IS_COMPLETE_MISSING = "is_complete_missing"
 WEIGHT = "weight"
 FIT_STATUS = "fit_status"
+
+RAW_P_VALUE = "raw_p_value"
+WITHIN_P_VALUE = "within_p_value"
+ADJUSTED_P_VALUE = "adjusted_p_value"
+IS_DISCORDANT = "is_discordant"
 
 DESIGN_SAMPLE_ID = "sample_id"
 DESIGN_CONDITION = "condition"
@@ -38,5 +44,17 @@ OPTIONAL_PEPTIDE_COLUMNS: frozenset[str] = frozenset(
         IS_REAL,
         IS_COMPLETE_MISSING,
         WEIGHT,
+    }
+)
+
+DISCORDANCE_RESULT_COLUMNS: frozenset[str] = frozenset(
+    {
+        PROTEIN_ID,
+        PEPTIDE_ID,
+        RAW_P_VALUE,
+        WITHIN_P_VALUE,
+        ADJUSTED_P_VALUE,
+        IS_DISCORDANT,
+        FIT_STATUS,
     }
 )

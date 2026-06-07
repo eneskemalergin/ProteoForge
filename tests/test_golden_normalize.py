@@ -10,7 +10,8 @@ import numpy as np
 import polars as pl
 
 from proteoforge import Config, prepare
-from proteoforge._normalize import NORMALIZED_INTENSITY, normalize_control_relative
+from proteoforge._normalize import normalize_control_relative
+from proteoforge.schema import NORMALIZED_INTENSITY
 
 
 def _reference_against_condition_numpy(

@@ -186,3 +186,42 @@ def test_config_json_schema_matches_artifact() -> None:
         Path("src/proteoforge/schemas/config.schema.json").read_text(encoding="utf-8")
     )
     assert schema == artifact
+
+
+def test_config_rejects_unknown_model() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="model 'foo'"):
+        Config(
+            control_condition="control",
+            conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
+            model="foo",  # type: ignore[arg-type]
+        )
+
+
+def test_config_rejects_unknown_model_from_dict() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="model 'foo'"):
+        Config.from_dict(
+            {
+                "control_condition": "control",
+                "conditions": {
+                    "control": ["S1", "S2"],
+                    "treated": ["S3", "S4"],
+                },
+                "model": "foo",
+            }
+        )
+
+
+def test_config_rejects_invalid_cut() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="cut 'bad'"):
+        Config(
+            control_condition="control",
+            conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
+            cut="bad",  # type: ignore[arg-type]
+        )
+
+
+def test_config_from_yaml_path_missing_file(tmp_path: Path) -> None:
+    from proteoforge._exceptions import ProteoForgeIOError
+
+    with pytest.raises(ProteoForgeIOError, match="Config file not found"):
+        Config.from_yaml_path(tmp_path / "missing.yaml")

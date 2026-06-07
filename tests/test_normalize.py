@@ -7,10 +7,10 @@ import pytest
 
 from proteoforge._exceptions import ProteoForgeValidationError
 from proteoforge._normalize import (
-    NORMALIZED_INTENSITY,
     normalize_control_relative,
     normalize_control_relative_long,
 )
+from proteoforge.schema import NORMALIZED_INTENSITY
 
 
 def test_normalize_rejects_non_positive_when_log_required() -> None:
