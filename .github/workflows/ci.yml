@@ -13,12 +13,21 @@ jobs:
   check:
     name: Lint, typecheck, and test
     runs-on: ubuntu-latest
+    # Slim gate until v0.1.0: one OS, Python 3.12. Expand matrix (OS × 3.12–3.14)
+    # after first public release; skip 3.15 until stable (~Oct 2026).
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
 
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
       - name: Set up uv
         uses: astral-sh/setup-uv@v8.2.0
+        with:
+          python-version: "3.12"
 
       - name: Install dependencies
         run: uv sync
@@ -31,35 +40,6 @@ jobs:
 
       - name: Mypy
         run: uv run mypy
-
-      - name: Pytest
-        run: uv run pytest tests --cov=proteoforge --cov-report=term-missing
-
-  test:
-    name: Test (${{ matrix.os }}, Python ${{ matrix.python-version }})
-    runs-on: ${{ matrix.os }}
-    needs: [check]
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.12", "3.13", "3.14", "3.15"]
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v8.2.0
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: uv sync
 
       - name: Pytest
         run: uv run pytest tests --cov=proteoforge --cov-report=term-missing

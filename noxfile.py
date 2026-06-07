@@ -7,9 +7,6 @@ import nox
 nox.options.default_venv_backend = "uv"
 nox.options.sessions = ["lint", "typecheck", "tests"]
 
-PYTHON_VERSIONS = ["3.12", "3.13", "3.14", "3.15"]
-
-
 @nox.session
 def lint(session: nox.Session) -> None:
     session.run("ruff", "check", ".")
@@ -21,7 +18,7 @@ def typecheck(session: nox.Session) -> None:
     session.run("mypy")
 
 
-@nox.session(python=PYTHON_VERSIONS)
+@nox.session(python="3.12")
 def tests(session: nox.Session) -> None:
     session.run(
         "pytest",
