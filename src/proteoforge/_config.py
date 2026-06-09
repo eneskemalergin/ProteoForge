@@ -152,7 +152,7 @@ class Config:
             msg = "hybrid_outlier_threshold must be between -1 and 1."
             raise ProteoForgeValidationError(msg)
 
-        from proteoforge._correction import VALID_METHODS
+        from proteoforge.correction import VALID_METHODS
 
         for field_name in ("correction_within", "correction_global"):
             method = getattr(self, field_name)
@@ -401,12 +401,30 @@ class Config:
                 },
                 "correction_within": {
                     "type": "string",
-                    "enum": ["bonferroni", "holm", "hochberg", "fdr", "fdr_bh", "BY"],
+                    "enum": [
+                        "bonferroni",
+                        "holm",
+                        "hommel",
+                        "hochberg",
+                        "fdr",
+                        "fdr_bh",
+                        "BY",
+                        "qvalue",
+                    ],
                     "default": "bonferroni",
                 },
                 "correction_global": {
                     "type": "string",
-                    "enum": ["bonferroni", "holm", "hochberg", "fdr", "fdr_bh", "BY"],
+                    "enum": [
+                        "bonferroni",
+                        "holm",
+                        "hommel",
+                        "hochberg",
+                        "fdr",
+                        "fdr_bh",
+                        "BY",
+                        "qvalue",
+                    ],
                     "default": "fdr_bh",
                 },
             },

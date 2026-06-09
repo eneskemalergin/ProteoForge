@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+Multiple-testing correction expanded for q-values, Hommel, and future weighted methods.
+
+### Added
+
+- Storey q-value correction via `p_adjust(..., "qvalue")`, with GCV pi0 on the shipped lambda grid (`proteoforge.correction.qvalue`)
+- Hommel adjustment via `p_adjust(..., "hommel")`, R `p.adjust` parity including `n_tests` padding
+- `proteoforge.correction` subpackage exporting `p_adjust`, `p_adjust_by_group`, and `VALID_METHODS`
+- `correction_within` / `correction_global` config values: `hommel`, `qvalue`
+
+### Changed
+
+- Correction implementation moved from `_correction.py` into `proteoforge.correction` (`_methods`, `qvalue/`); `_correction.py` remains a backward-compatible re-export
+
 ## [0.0.3] - 2026-06-08
 
 Module 3 clustering and dPF assignment.

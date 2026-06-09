@@ -91,11 +91,15 @@ version-file = "src/proteoforge/_version.py"
 [tool.hatch.build.targets.wheel]
 packages = ["src/proteoforge"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"src/proteoforge/constants/pi0_gcv_spline.npz" = "proteoforge/constants/pi0_gcv_spline.npz"
+
 [tool.hatch.build.targets.sdist]
 include = [
   "/src",
   "/tests",
   "/docs",
+  "/scripts",
   "/README.md",
   "/CHANGELOG.md",
   "/LICENSE",
@@ -119,6 +123,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "TCH", "PTH", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/test_progress.py" = ["TC002"]
+"src/proteoforge/correction/qvalue/_gcv.py" = ["E501", "SIM108", "SIM109"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -145,6 +150,8 @@ module = [
     "proteoforge.clustering._distance",
     "proteoforge.clustering._silhouette",
     "proteoforge.clustering._cuts",
+    "proteoforge.correction._methods",
+    "proteoforge.correction.qvalue._gcv",
 ]
 disable_error_code = ["untyped-decorator", "no-any-return"]
 
@@ -163,6 +170,8 @@ omit = [
     "src/proteoforge/clustering/_linkage.py",
     "src/proteoforge/clustering/_silhouette.py",
     "src/proteoforge/clustering/_cuts.py",
+    "src/proteoforge/correction/_methods.py",
+    "src/proteoforge/correction/qvalue/_gcv.py",
 ]
 
 [tool.coverage.report]

@@ -168,6 +168,24 @@ def test_config_rejects_invalid_correction_method() -> None:
         )
 
 
+def test_config_accepts_qvalue_correction() -> None:
+    cfg = Config(
+        control_condition="control",
+        conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
+        correction_global="qvalue",
+    )
+    assert cfg.correction_global == "qvalue"
+
+
+def test_config_accepts_hommel_correction() -> None:
+    cfg = Config(
+        control_condition="control",
+        conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
+        correction_within="hommel",
+    )
+    assert cfg.correction_within == "hommel"
+
+
 def test_config_rejects_invalid_wls_biological_weight() -> None:
     with pytest.raises(ProteoForgeValidationError, match="wls_biological_weight"):
         Config(

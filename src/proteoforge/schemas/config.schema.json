@@ -136,10 +136,12 @@
       "enum": [
         "bonferroni",
         "holm",
+        "hommel",
         "hochberg",
         "fdr",
         "fdr_bh",
-        "BY"
+        "BY",
+        "qvalue"
       ],
       "default": "bonferroni"
     },
@@ -148,10 +150,12 @@
       "enum": [
         "bonferroni",
         "holm",
+        "hommel",
         "hochberg",
         "fdr",
         "fdr_bh",
-        "BY"
+        "BY",
+        "qvalue"
       ],
       "default": "fdr_bh"
     }

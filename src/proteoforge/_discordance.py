@@ -15,7 +15,7 @@ import numpy as np
 import numpy.typing as npt
 import polars as pl
 
-from proteoforge._correction import p_adjust, p_adjust_by_group
+from proteoforge.correction import p_adjust, p_adjust_by_group
 from proteoforge._exceptions import (
     ProteoForgeParallelFallbackWarning,
     ProteoForgeValidationError,

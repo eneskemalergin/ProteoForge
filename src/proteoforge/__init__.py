@@ -5,6 +5,7 @@ from __future__ import annotations
 from importlib.metadata import PackageNotFoundError, version
 
 from proteoforge._config import Config
+from proteoforge.correction import VALID_METHODS, p_adjust, p_adjust_by_group
 from proteoforge._exceptions import ProteoForgeIOError, ProteoForgeValidationError
 from proteoforge.cluster import (
     ClusterResult,
@@ -23,6 +24,7 @@ except PackageNotFoundError:
     __version__ = "0.0.3"
 
 __all__ = [
+    "VALID_METHODS",
     "ClusterResult",
     "ColumnMap",
     "Config",
@@ -36,6 +38,8 @@ __all__ = [
     "__version__",
     "assign_proteoforms",
     "load_fixture_bundle",
+    "p_adjust",
+    "p_adjust_by_group",
     "prepare",
     "prepare_from_parquet",
     "run_cluster",
