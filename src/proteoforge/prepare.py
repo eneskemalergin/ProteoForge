@@ -1,15 +1,11 @@
-"""
-Public prepare entry point.
-
-Expose :func:`prepare`, :func:`prepare_from_parquet`, and
-:func:`validate_and_prepare` for validation and normalization.
-"""
+"""Public prepare entry point."""
 
 from __future__ import annotations
 
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from proteoforge._exceptions import ProteoForgeIOError
 from proteoforge._validate import validate_and_prepare
 from proteoforge.io._peptides import _scan_peptide_file
 
@@ -95,5 +91,9 @@ def prepare_from_parquet(
     ProteoForgeValidationError
         If validation or normalization fails.
     """
-    lf = _scan_peptide_file(Path(path), config)
+    file_path = Path(path)
+    if not file_path.is_file():
+        msg = f"Peptide file not found: {file_path}"
+        raise ProteoForgeIOError(msg)
+    lf = _scan_peptide_file(file_path, config)
     return validate_and_prepare(lf, config, provenance=provenance)

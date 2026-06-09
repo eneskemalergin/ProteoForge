@@ -1,8 +1,6 @@
 # ProteoForge documentation
 
-ProteoForge discovers differential proteoforms from an imputed peptide matrix and a condition design with a control. The installable package (**v0.0.2**) covers configuration, long-format peptide I/O, input validation, control-relative normalization (Module 1), and peptide discordance with core RLM and WLS backends (Module 2).
-
-Clustering, dPF assignment, and the unified `discover()` API are not implemented yet.
+ProteoForge discovers differential proteoforms from an imputed peptide matrix and a condition design with a control. The installable package covers configuration, long-format peptide I/O, input validation, control-relative normalization (Module 1), peptide discordance with core RLM and WLS backends (Module 2), and Ward clustering with dPF assignment (Module 3). The unified `discover()` API and HTML report are not implemented yet.
 
 ## Pipeline
 
@@ -23,12 +21,12 @@ flowchart LR
 
   style N fill:#059669,color:#fff
   style D fill:#059669,color:#fff
-  style C fill:#64748b,color:#fff
-  style P fill:#64748b,color:#fff
+  style C fill:#059669,color:#fff
+  style P fill:#059669,color:#fff
   style OUT fill:#64748b,color:#fff
 ```
 
-Modules 1 and 2 (green) ship in v0.0.2. Later modules are planned but not available in this release.
+Modules 1 to 3 (green) are available in the current package. `ProteoformResults` and `discover()` (Phase 4) are planned but not available yet.
 
 ## Reading order
 
@@ -37,20 +35,27 @@ Modules 1 and 2 (green) ship in v0.0.2. Later modules are planned but not availa
 3. [Prepare](prepare.md): `prepare()` and `prepare_from_parquet()` end to end
 4. [Normalization](normalization.md): control-relative intensity transform (Module 1)
 5. [Discordance](discordance.md): `run_discordance()` and WLS/RLM backends (Module 2)
-6. [PreparedDataset](prepared-dataset.md): output contract between prepare and discordance
+6. [Clustering](clustering.md): `run_cluster()` and `assign_proteoforms()` (Module 3)
+7. [PreparedDataset](prepared-dataset.md): output contract between prepare and downstream modules
 
 ## Quick example
 
 ```python
-from proteoforge import Config, prepare_from_parquet, run_discordance
+from proteoforge import (
+    Config,
+    assign_proteoforms,
+    prepare_from_parquet,
+    run_cluster,
+    run_discordance,
+)
 
 config = Config.from_yaml_path("config.yaml")
 dataset = prepare_from_parquet("peptides.parquet", config)
-result = run_discordance(dataset)
+discordance = run_discordance(dataset)
+clusters = run_cluster(dataset, discordance)
+mapping = assign_proteoforms(dataset, discordance, clusters)
 
-dataset.peptides.height   # n_peptides × n_samples long rows
-result.n_discordant
-result.discordant.height  # discordant peptides only
+mapping.n_differential_peptides
 ```
 
 ## Project links

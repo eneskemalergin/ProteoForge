@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from proteoforge._config import Config
 from proteoforge._exceptions import ProteoForgeIOError, ProteoForgeValidationError
@@ -22,17 +22,14 @@ class FixtureBundle:
     """
     Resolved paths for a versioned fixture directory.
 
-    Experimental design lives in ``config.yaml`` (``control_condition`` and
-    ``conditions``). The manifest only indexes data files.
-
-    Parameters
+    Attributes
     ----------
     root
         Directory containing ``manifest.yaml``.
     name
         Fixture identifier (e.g. ``complete``).
     peptides_path
-        ProteoForge input parquet/csv (pipeline columns only).
+        Input parquet or csv with pipeline columns only.
     config_path
         ``Config`` YAML including embedded design.
     description
@@ -138,7 +135,7 @@ def _resolve_file(root: Path, relative: str, *, label: str) -> Path:
     return resolved
 
 
-def _load_yaml(path: Path) -> Any:
+def _load_yaml(path: Path) -> object:
     try:
         import yaml
     except ImportError as exc:

@@ -1,6 +1,6 @@
 # Prepare
 
-`prepare()` validates peptide input, applies control-relative normalization, and returns a `PreparedDataset`. This is the Module 1 entry point (v0.0.1+); pass the result to `run_discordance()` for Module 2 (v0.0.2+).
+`prepare()` validates peptide input, applies control-relative normalization, and returns a `PreparedDataset`. Pass the result to `run_discordance()`, then `run_cluster()` and `assign_proteoforms()` for the full pipeline through dPF assignment.
 
 Public API:
 
@@ -91,7 +91,7 @@ Failures raise `ProteoForgeValidationError` unless noted as warnings.
 
 For `model="wls"`, `prepare()` requires a `weight` column or **both** `is_real` and `is_complete_missing`.
 
-Normalization itself does not branch on `model`. The field gates provenance validation and selects the discordance backend in `run_discordance()` (RLM and WLS in v0.0.2).
+Normalization itself does not branch on `model`. The field gates provenance validation and selects the discordance backend in `run_discordance()` (RLM and WLS).
 
 ## Errors and exceptions
 

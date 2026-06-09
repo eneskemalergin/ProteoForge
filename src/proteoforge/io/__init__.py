@@ -1,6 +1,4 @@
-"""
-Public I/O entry points for peptide tables, provenance, design, and FASTA.
-"""
+"""Public I/O entry points for peptides, provenance, design, and FASTA."""
 
 from __future__ import annotations
 

@@ -63,11 +63,12 @@ Values in `intensity_normalized` come from [control-relative normalization](norm
 
 ## Downstream use
 
-Pass a `PreparedDataset` to `run_discordance()` for peptide-level interaction testing (Module 2, v0.0.2). See [Discordance](discordance.md).
+Pass a `PreparedDataset` to `run_discordance()` (Module 2) and `run_cluster()` (Module 3). See [Discordance](discordance.md) and [Clustering](clustering.md).
 
 ## Related pages
 
 - [Prepare](prepare.md): how `PreparedDataset` is built
 - [Discordance](discordance.md): Module 2 entry point
+- [Clustering](clustering.md): Module 3 entry point
 - [Configuration](config.md): design and model options
 - [Input and output](io.md): input columns and provenance

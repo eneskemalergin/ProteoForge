@@ -1,10 +1,4 @@
-"""
-Discordance model backends.
-
-Exposes the :class:`DiscordanceModel` protocol and the WLS and RLM
-implementations of the one-vs-rest interaction test. Model selection by name
-goes through :func:`select_model`.
-"""
+"""Discordance model backends and :func:`select_model`."""
 
 from __future__ import annotations
 
@@ -38,14 +32,14 @@ def select_model(name: str) -> DiscordanceModel:
     Raises
     ------
     ProteoForgeValidationError
-        If the name has no Phase 2 backend (eBayes is deferred).
+        If the name is unknown or ``ebayes`` (deferred).
     """
     if name == "rlm":
         return RLMModel()
     if name == "wls":
         return WLSModel()
     if name == "ebayes":
-        msg = "model='ebayes' is not implemented in Phase 2. Use 'rlm' or 'wls'."
+        msg = "model='ebayes' is not implemented. Use 'rlm' or 'wls'."
         raise ProteoForgeValidationError(msg)
-    msg = f"Unknown model '{name}'. Valid Phase 2 models: 'rlm', 'wls'."
+    msg = f"Unknown model '{name}'. Valid models: 'rlm', 'wls'."
     raise ProteoForgeValidationError(msg)

@@ -1,14 +1,4 @@
-"""
-NumPy-only statistics for the discordance engine.
-
-Implements the special functions and tail probabilities needed to reproduce
-the statsmodels Wald-on-interaction p-value without scipy. The regularized
-incomplete beta backs the F survival function (WLS and OLS); the regularized
-upper incomplete gamma backs the chi-square survival function (RLM).
-
-Algorithms follow Numerical Recipes (``betacf``, ``gser``, ``gcf``), vectorized
-over the evaluation point with scalar shape parameters.
-"""
+"""NumPy-only tail probabilities for statsmodels-parity p-values (Numerical Recipes)."""
 
 from __future__ import annotations
 

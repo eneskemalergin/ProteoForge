@@ -1,10 +1,4 @@
-"""
-Shared progress reporting for long-running package tasks.
-
-Uses ``tqdm.auto`` (terminal or notebook). Disabled when the user opts out,
-when ``TQDM_DISABLE`` is set, or when neither an interactive terminal nor a
-notebook frontend is detected (piped logs, CI capture).
-"""
+"""Shared tqdm progress helpers (disabled in CI and non-interactive stderr)."""
 
 from __future__ import annotations
 

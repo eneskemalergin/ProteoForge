@@ -275,7 +275,7 @@ def _validate_structure(
             stacklevel=2,
         )
 
-    if config.model == "wls" and provenance_columns_missing(frame):
+    if config.model == "wls" and _provenance_columns_missing(frame):
         msg = (
             "model='wls' requires a weight column or both is_real and "
             "is_complete_missing for mask-derived weights. Attach provenance "
@@ -284,7 +284,7 @@ def _validate_structure(
         raise ProteoForgeValidationError(msg)
 
 
-def provenance_columns_missing(frame: pl.DataFrame) -> bool:
+def _provenance_columns_missing(frame: pl.DataFrame) -> bool:
     """Return True when WLS provenance columns are insufficient."""
     has_weight = WEIGHT in frame.columns
     has_both_masks = IS_REAL in frame.columns and IS_COMPLETE_MISSING in frame.columns

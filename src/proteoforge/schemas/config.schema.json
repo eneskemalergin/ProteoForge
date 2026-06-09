@@ -78,6 +78,9 @@
     },
     "linkage": {
       "type": "string",
+      "enum": [
+        "ward"
+      ],
       "default": "ward"
     },
     "cut": {
@@ -88,6 +91,35 @@
         "dynamic_tree"
       ],
       "default": "hybrid_outlier"
+    },
+    "cluster_min_clusters": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    },
+    "cluster_max_clusters": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "default": null
+    },
+    "fixed_n_clusters": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 2
+    },
+    "hybrid_outlier_threshold": {
+      "type": "number",
+      "minimum": -1,
+      "maximum": 1,
+      "default": 0.05
+    },
+    "cluster_min_peptides": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 2
     },
     "n_jobs": {
       "type": "integer",

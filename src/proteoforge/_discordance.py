@@ -1,12 +1,4 @@
-"""
-Discordance orchestration.
-
-Drives the one-vs-rest engine end to end: build per-protein long blocks,
-assemble one-vs-rest designs, fit the configured model, apply two-step
-multiple-testing correction, and flag discordant peptides. Three batching
-strategies share one fitting path and produce identical p-values; the default
-groups designs by shape across proteins without retaining all design tensors.
-"""
+"""Discordance orchestration for one-vs-rest fitting and FDR."""
 
 from __future__ import annotations
 
@@ -17,7 +9,7 @@ import warnings
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from concurrent.futures.process import BrokenProcessPool
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
@@ -114,7 +106,7 @@ def run_discordance(
     n_jobs: int | None = None,
 ) -> DiscordanceResult:
     """
-    Run Module 2 discordance on a prepared dataset.
+    Fit one-vs-rest discordance models and apply two-step FDR correction.
 
     Parameters
     ----------
@@ -201,7 +193,7 @@ def run_discordance(
         }
     )
 
-    metadata: dict[str, Any] = {
+    metadata: dict[str, object] = {
         "model": config.model,
         "correction_within": config.correction_within,
         "correction_global": config.correction_global,
@@ -270,7 +262,7 @@ def _serial_fit_metadata(
     n_shape_groups: int = 0,
     parallel_fallback: bool = False,
     parallel_fallback_reason: str | None = None,
-) -> dict[str, Any]:
+) -> dict[str, object]:
     """Build parallel-run metadata for ``DiscordanceResult.metadata``."""
     return {
         "n_jobs_requested": n_jobs_requested,
@@ -450,7 +442,7 @@ def _fit_shape_streaming(
     *,
     show_progress: bool = False,
     n_jobs: int = 1,
-) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.object_], dict[str, Any]]:
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.object_], dict[str, object]]:
     offsets, group_items = _shape_group_items(blocks)
     n_shape_groups = len(group_items)
     workers = _resolve_n_jobs(n_jobs)
@@ -459,7 +451,7 @@ def _fit_shape_streaming(
         *,
         parallel_fallback: bool = False,
         parallel_fallback_reason: str | None = None,
-    ) -> dict[str, Any]:
+    ) -> dict[str, object]:
         return _serial_fit_metadata(
             n_jobs,
             parallel_applicable=True,

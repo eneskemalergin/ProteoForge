@@ -16,25 +16,26 @@
     <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-64748b?style=for-the-badge" alt="Changelog" /></a>
 </p>
 <p align="center">
-    <a href="#installation"><img src="https://img.shields.io/badge/python-3.12--3.15-f59e0b?style=for-the-badge" alt="Python 3.12-3.15" /></a>
+    <a href="#installation"><img src="https://img.shields.io/badge/python-3.12%2B-f59e0b?style=for-the-badge" alt="Python 3.12+" /></a>
     <a href="#installation"><img src="https://img.shields.io/badge/numpy-2.2%2B-2563eb?style=for-the-badge&logo=numpy&logoColor=white" alt="NumPy 2.2+" /></a>
     <a href="#installation"><img src="https://img.shields.io/badge/polars-1.26%2B-cd7c2f?style=for-the-badge&logo=polars&logoColor=white" alt="Polars 1.26+" /></a>
+    <a href="#installation"><img src="https://img.shields.io/badge/numba-0.61%2B-00a3b8?style=for-the-badge" alt="Numba 0.61+" /></a>
 </p>
 <p align="center">
     <a href="https://github.com/eneskemalergin/ProteoForge"><img src="https://img.shields.io/badge/status-in%20development-0f766e?style=for-the-badge" alt="In development" /></a>
 </p>
 
-> **Note:** Modules 1 and 2 (prepare and discordance) are functional. Clustering, dPF assignment, and the unified discovery API are not implemented yet.
+> **Note:** Modules 1 to 3 ship today (prepare, discordance, Ward clustering, dPF assignment). The unified `discover()` API and HTML report are planned.
 
 ProteoForge discovers differential proteoforms from an imputed peptide matrix and a condition design with a control. Peptides that break rank with their siblings are grouped into dPF units: canonical signal (`dPF_0`), multi-peptide proteoforms (`dPF_1+`), and singleton discordants (`dPF_-1`).
 
 The package does not impute, search, or quantify. Upstream imputation is required.
 
-**Available now (v0.0.2):** long-format peptide I/O, input validation, control-relative normalization (`prepare()`), and peptide discordance (`run_discordance()`) with core **RLM** and **WLS** backends.
+**Available now:** long-format peptide I/O, validation, control-relative normalization (`prepare()`), discordance (`run_discordance()`), Ward clustering (`run_cluster()`), and dPF assignment (`assign_proteoforms()`). Core discordance backends: **RLM** (default) and **WLS**.
 
 ## Pipeline
 
-Four modules from the ProteoForge method. Modules 1 and 2 ship in v0.0.2; later modules are planned but not available in this release.
+Four modules from the ProteoForge method. Modules 1 to 3 are available in the current package. Module 4 (`ProteoformResults`, `discover()`) is planned.
 
 ```mermaid
 flowchart LR
@@ -52,15 +53,19 @@ flowchart LR
   P --> OUT
 ```
 
-**Shipped in v0.0.2 (Module 2)**
+**Module 2 (discordance)**
 
 - RLM (default) and WLS (mask-derived or precomputed weights)
 - Two-step multiple-testing correction, shape-group batching, parallel RLM pool
-- Unit tests on small synthetic and committed fixtures
+
+**Module 3 (clustering and dPF)**
+
+- Ward linkage on peptide condition profiles with hybrid outlier cut (default)
+- dPF mapping (`dPF_0`, `dPF_-1`, positive differential proteoforms)
 
 ## Installation
 
-Python 3.12 to 3.15. Runtime: NumPy 2.2+, Polars 1.26+, PyYAML, tqdm.
+Python 3.12 or newer (CI gates on 3.12). Runtime: NumPy 2.2+, Polars 1.26+, Numba 0.61+, PyYAML, tqdm.
 
 PyPI follows v0.1.0. Until then, install from source:
 
@@ -70,7 +75,7 @@ cd ProteoForge
 uv sync
 ```
 
-Optional extras: `plots`, `interactive`, `accel`, `docs`. The `cli` extra is reserved for a future Typer CLI and is not used in v0.0.2.
+Optional extras: `plots`, `interactive`, `docs`. The `cli` extra is reserved for a future Typer CLI. Clustering geometry uses Numba JIT in `proteoforge.clustering`.
 
 ```bash
 pip install -e ".[plots,docs]"
@@ -80,18 +85,24 @@ pip install -e ".[plots,docs]"
 
 ### Available now
 
-Load a long-format peptide parquet, validate, normalize, and run discordance. Experimental design and sample scope live in the config YAML, not a separate design file.
+Load a long-format peptide parquet, validate, normalize, run discordance, cluster discordant proteins, and assign dPF IDs. Experimental design and sample scope live in the config YAML.
 
 ```python
-from proteoforge import Config, prepare_from_parquet, run_discordance
+from proteoforge import (
+    Config,
+    assign_proteoforms,
+    prepare_from_parquet,
+    run_cluster,
+    run_discordance,
+)
 
 config = Config.from_yaml_path("config.yaml")
 dataset = prepare_from_parquet("peptides.parquet", config)
-result = run_discordance(dataset)
+discordance = run_discordance(dataset)
+clusters = run_cluster(dataset, discordance)
+mapping = assign_proteoforms(dataset, discordance, clusters)
 
-dataset.peptides.height  # n_peptides * n_samples long rows
-result.n_discordant
-result.discordant
+mapping.table
 ```
 
 Example `config.yaml`:
@@ -111,7 +122,7 @@ To inspect harmonized long-format rows without normalizing, use `read_peptides(p
 
 ### Not yet available
 
-The unified discovery API below is planned but not implemented in v0.0.2. Use `prepare()` + `run_discordance()` today.
+The unified discovery API below is planned. Use the module calls above today.
 
 ```python
 import proteoforge as pf
@@ -131,7 +142,7 @@ proteoforge discover peptides.parquet --config config.yaml -o results/
 
 ## Documentation
 
-Full docs for v0.0.2:
+User documentation:
 
 - [Documentation home](docs/index.md)
 - [Configuration](docs/config.md)
@@ -139,6 +150,7 @@ Full docs for v0.0.2:
 - [Prepare](docs/prepare.md)
 - [Normalization](docs/normalization.md)
 - [Discordance](docs/discordance.md)
+- [Clustering](docs/clustering.md)
 - [PreparedDataset](docs/prepared-dataset.md)
 - [Changelog](CHANGELOG.md)
 

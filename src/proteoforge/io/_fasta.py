@@ -18,7 +18,7 @@ def read_fasta(path: str | Path) -> pl.DataFrame:
     Load a FASTA file into a Polars DataFrame.
 
     Parses headers and sequences only. Full UniProt annotation parsing is not
-    implemented in v0.0.2.
+    implemented.
 
     Parameters
     ----------

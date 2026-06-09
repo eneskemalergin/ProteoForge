@@ -23,7 +23,7 @@ Only two config fields affect normalization today:
 - **`control_condition`**: which samples in `conditions` define the baseline in step 3
 - **`input_is_log2`**: skip log2 when intensities are already log-transformed
 
-`model`, `fdr`, clustering options, and parallel settings do not change normalization in v0.0.2. They apply in `run_discordance()` and future clustering modules.
+`model`, `fdr`, clustering options, and parallel settings do not change normalization. They apply in `run_discordance()`, `run_cluster()`, and `assign_proteoforms()`.
 
 ## Implementation notes
 

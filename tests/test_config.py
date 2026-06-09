@@ -22,6 +22,12 @@ def test_config_defaults() -> None:
     assert cfg.fdr == 0.001
     assert cfg.correction_within == "bonferroni"
     assert cfg.correction_global == "fdr_bh"
+    assert cfg.cut == "hybrid_outlier"
+    assert cfg.cluster_min_clusters == 1
+    assert cfg.cluster_max_clusters is None
+    assert cfg.fixed_n_clusters == 2
+    assert cfg.hybrid_outlier_threshold == 0.05
+    assert cfg.cluster_min_peptides == 2
 
 
 def test_config_rejects_empty_control() -> None:
@@ -218,6 +224,70 @@ def test_config_rejects_invalid_cut() -> None:
             conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
             cut="bad",  # type: ignore[arg-type]
         )
+
+
+def test_config_rejects_invalid_linkage() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="linkage 'complete'"):
+        Config(
+            control_condition="control",
+            conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
+            linkage="complete",
+        )
+
+
+def test_config_rejects_cluster_max_below_min() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="cluster_max_clusters"):
+        Config(
+            control_condition="control",
+            conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
+            cluster_min_clusters=3,
+            cluster_max_clusters=2,
+        )
+
+
+def test_config_rejects_non_median_profile_aggregation() -> None:
+    with pytest.raises(ProteoForgeValidationError, match="profile_aggregation"):
+        Config.from_dict(
+            {
+                "control_condition": "control",
+                "conditions": {
+                    "control": ["S1", "S2"],
+                    "treated": ["S3", "S4"],
+                },
+                "profile_aggregation": "mean",
+            }
+        )
+
+
+def test_config_ignores_profile_aggregation_median() -> None:
+    cfg = Config.from_dict(
+        {
+            "control_condition": "control",
+            "conditions": {
+                "control": ["S1", "S2"],
+                "treated": ["S3", "S4"],
+            },
+            "profile_aggregation": "median",
+        }
+    )
+    assert cfg.cut == "hybrid_outlier"
+
+
+def test_config_cluster_fields_round_trip() -> None:
+    cfg = Config(
+        control_condition="control",
+        conditions={"control": ("S1", "S2"), "treated": ("S3", "S4")},
+        linkage="ward",
+        cut="dynamic_tree",
+        cluster_min_clusters=2,
+        cluster_max_clusters=5,
+        hybrid_outlier_threshold=0.1,
+        cluster_min_peptides=3,
+    )
+    restored = Config.from_dict(cfg.to_dict())
+    assert restored.cut == "dynamic_tree"
+    assert restored.cluster_max_clusters == 5
+    assert restored.cluster_min_peptides == 3
 
 
 def test_config_from_yaml_path_missing_file(tmp_path: Path) -> None:

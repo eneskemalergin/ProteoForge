@@ -81,24 +81,27 @@ Defaults match canonical names (identity mapping). Omitted `column_map` fields u
 - `min_peptides` (default `4`, minimum `2`): each protein must have at least this many unique `(protein_id, peptide_id)` pairs after scoping.
 - `input_is_log2` (default `false`): when `false`, intensities are log2-transformed during normalization. Set `true` when the input is already log2-scaled.
 - `column_map` (optional): source-to-canonical column renames for peptide tables.
-- `model` (default `"rlm"`, one of `rlm`, `wls`, `ebayes`): affects validation and which optional columns are retained on `PreparedDataset`. `rlm` keeps provenance columns on `peptides` when present; `PreparedDataset.is_real` and `weight` return `None`. `wls` requires a `weight` column or both `is_real` and `is_complete_missing` before `prepare()` completes. `ebayes` is rejected at `Config` construction (not implemented in v0.0.2).
+- `model` (default `"rlm"`, one of `rlm`, `wls`, `ebayes`): affects validation and which optional columns are retained on `PreparedDataset`. `rlm` keeps provenance columns on `peptides` when present; `PreparedDataset.is_real` and `weight` return `None`. `wls` requires a `weight` column or both `is_real` and `is_complete_missing` before `prepare()` completes. `ebayes` is rejected at `Config` construction (not implemented).
 - `wls_biological_weight` (default `0.5`, range `(0, 1]`): weight for condition-wide imputed entries when deriving WLS weights from masks.
 
-### Used by `run_discordance()` (v0.0.2)
+### Used by `run_discordance()`
 
 - `fdr` (default `0.001`): global adjusted p-value threshold for `is_discordant`.
 - `correction_within` (default `bonferroni`): within-protein correction method.
 - `correction_global` (default `fdr_bh`): global correction method.
-- `n_jobs` (default `-1`): parallel worker count for shape-group discordance (`-1` maps to `min(8, cpu_count // 2)`).
+- `n_jobs` (default `-1`): parallel worker count for discordance shape groups and clustering (`-1` maps to `min(8, cpu_count // 2)`).
 
 These fields do not change normalization in `prepare()`.
 
-### Reserved (not yet implemented)
+### Used by `run_cluster()` and `assign_proteoforms()`
 
-Validated in config but not consumed by the current release:
-
-- `linkage` (default `"ward"`): hierarchical clustering linkage.
-- `cut` (default `"hybrid_outlier"`): cluster count strategy (`hybrid_outlier`, `fixed_height`, `dynamic_tree`).
+- `linkage` (default `"ward"`): hierarchical clustering linkage. Only `ward` is supported at runtime.
+- `cut` (default `"hybrid_outlier"`): dendrogram cut strategy (`hybrid_outlier`, `fixed_height`, `dynamic_tree`). See [Clustering](clustering.md).
+- `cluster_min_clusters` (default `1`): lower bound on cluster count from dendrogram k-selection.
+- `cluster_max_clusters` (default `null`): upper bound on cluster count; `null` means no cap beyond peptide count.
+- `fixed_n_clusters` (default `2`): target cluster count for `fixed_height` cut (combined with `cluster_min_clusters`).
+- `hybrid_outlier_threshold` (default `0.05`): silhouette cutoff for singleton relabel in `hybrid_outlier` cut.
+- `cluster_min_peptides` (default `2`): minimum peptides on a protein to run linkage; below this, assign a single cluster without Ward.
 
 ## Loading and serialization
 

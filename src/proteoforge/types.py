@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -19,8 +19,12 @@ class ColumnMap:
     """
     Map source column names in input files to canonical ProteoForge names.
 
-    Each field holds the **source** column name expected in the file. Defaults
-    match canonical names (identity mapping).
+    Attributes
+    ----------
+    protein_id, peptide_id, sample_id, condition, intensity
+        Source column names. Defaults match canonical names (identity mapping).
+    is_real, is_complete_missing, weight
+        Optional provenance column names in the source file.
     """
 
     protein_id: str = "protein_id"
@@ -96,7 +100,7 @@ class PreparedDataset:
     sample_ids: tuple[str, ...]
     condition_levels: tuple[str, ...]
     protein_index: npt.NDArray[np.intp]
-    metadata: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, object] = field(default_factory=dict)
 
     @property
     def n_peptides(self) -> int:
@@ -113,7 +117,8 @@ class PreparedDataset:
     @property
     def n_proteins(self) -> int:
         """Number of distinct proteins."""
-        return int(self.metadata.get("n_proteins", 0))
+        raw = self.metadata.get("n_proteins", 0)
+        return raw if isinstance(raw, int) else 0
 
     @property
     def intensity_normalized(self) -> npt.NDArray[np.float64]:
@@ -169,12 +174,7 @@ class PreparedDataset:
 @dataclass(frozen=True)
 class DiscordanceResult:
     """
-    Per-peptide discordance outcome for Phase 3 handoff.
-
-    The ``table`` holds one row per ``(protein_id, peptide_id)`` with the raw
-    interaction p-value, the within-protein adjusted value, the global adjusted
-    value, and the discordance flag. Keys are stable; Phase 3 joins on them
-    without re-fitting.
+    Per-peptide discordance outcome.
 
     Attributes
     ----------
@@ -192,7 +192,12 @@ class DiscordanceResult:
 
     config: Config
     table: pl.DataFrame
-    metadata: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, object] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        from proteoforge.schema import validate_discordance_result_table
+
+        validate_discordance_result_table(self.table)
 
     @property
     def n_discordant(self) -> int:
@@ -209,3 +214,88 @@ class DiscordanceResult:
         from proteoforge.schema import IS_DISCORDANT
 
         return self.table.filter(pl.col(IS_DISCORDANT))
+
+
+@dataclass(frozen=True)
+class ClusterResult:
+    """
+    Per-peptide clustering outcome for proteins with discordant members.
+
+    Attributes
+    ----------
+    config
+        Frozen configuration used for the run.
+    table
+        One row per clustered ``(protein_id, peptide_id)`` with ``cluster_id``,
+        ``cut_method``, and ``linkage_method``. Proteins without discordance
+        are omitted; those peptides receive ``dPF_0`` during assignment.
+    metadata
+        Run statistics and parallel execution fields.
+    """
+
+    config: Config
+    table: pl.DataFrame
+    metadata: dict[str, object] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        from proteoforge.schema import validate_cluster_result_table
+
+        validate_cluster_result_table(self.table)
+
+    @property
+    def n_clustered_peptides(self) -> int:
+        """Number of peptides assigned a cluster."""
+        return self.table.height
+
+    @property
+    def n_clusters(self) -> int:
+        """Number of unique protein-cluster pairs."""
+        from proteoforge.schema import CLUSTER_ID, PROTEIN_ID
+
+        if self.table.is_empty():
+            return 0
+        return self.table.select([PROTEIN_ID, CLUSTER_ID]).n_unique()
+
+
+@dataclass(frozen=True)
+class ProteoformMappingResult:
+    """
+    Per-peptide differential proteoform assignment.
+
+    Attributes
+    ----------
+    config
+        Frozen configuration used for the run.
+    table
+        One row per peptide in the prepared scope with ``is_discordant``,
+        ``cluster_id``, and ``dpf_id``.
+    metadata
+        Counts by dPF class and validation summary.
+    """
+
+    config: Config
+    table: pl.DataFrame
+    metadata: dict[str, object] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        from proteoforge.schema import validate_proteoform_mapping_table
+
+        validate_proteoform_mapping_table(self.table)
+
+    @property
+    def n_differential_peptides(self) -> int:
+        """Number of peptides assigned to positive dPF IDs."""
+        import polars as pl
+
+        from proteoforge.schema import DPF_ID
+
+        return int(self.table.select((pl.col(DPF_ID) > 0).sum()).item())
+
+    @property
+    def n_singletons(self) -> int:
+        """Number of peptides assigned to singleton ``dPF_-1``."""
+        import polars as pl
+
+        from proteoforge.schema import DPF_ID
+
+        return int(self.table.select((pl.col(DPF_ID) == -1).sum()).item())

@@ -1,9 +1,4 @@
-"""
-Public discordance entry point.
-
-Exposes :func:`run_discordance` and the result type for Module 2. Phase 4 may
-wrap this inside ``discover()``.
-"""
+"""Public discordance entry point."""
 
 from __future__ import annotations
 

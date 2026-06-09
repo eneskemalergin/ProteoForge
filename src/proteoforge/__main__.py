@@ -14,8 +14,8 @@ def build_parser() -> argparse.ArgumentParser:
         prog="proteoforge",
         description=(
             "ProteoForge differential proteoform discovery. "
-            "v0.0.2 ships prepare and discordance only; the discover "
-            "subcommand is not implemented yet."
+            "Library API: prepare, discordance, and clustering. "
+            "The discover subcommand is not implemented yet."
         ),
     )
     parser.add_argument(

@@ -24,6 +24,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
+    "numba>=0.61",
     "numpy>=2.2",
     "polars>=1.26",
     "pyyaml>=6.0.2",
@@ -33,7 +34,6 @@ dependencies = [
 [project.optional-dependencies]
 plots = ["matplotlib>=3.10"]
 interactive = ["plotly>=6.0", "ipywidgets>=8.1"]
-accel = ["numba>=0.61"]
 cli = ["rich>=14.0", "typer>=0.15"]
 docs = ["mkdocs>=1.6", "mkdocs-material>=9.6", "mkdocstrings>=0.29", "mkdocstrings-python>=1.16"]
 ref = [
@@ -58,6 +58,7 @@ dev = [
     "pytest-cov>=6.1",
     "pytest>=8.4",
     "ruff>=0.11",
+    "scikit-learn>=1.6",
     "scipy>=1.15",
     "statsmodels>=0.14",
     "tqdm>=4.67",
@@ -82,7 +83,7 @@ Changelog = "https://github.com/eneskemalergin/ProteoForge/blob/main/CHANGELOG.m
 
 [tool.hatch.version]
 source = "vcs"
-fallback-version = "0.0.2"
+fallback-version = "0.0.3"
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/proteoforge/_version.py"
@@ -132,14 +133,37 @@ show_error_codes = true
 module = ["proteoforge._version"]
 ignore_errors = true
 
+# numba: no py.typed stubs
+[[tool.mypy.overrides]]
+module = ["numba", "numba.*"]
+ignore_missing_imports = true
+
+# njit kernels: untyped-decorator and no-any-return only inside @njit bodies
+[[tool.mypy.overrides]]
+module = [
+    "proteoforge.clustering._linkage",
+    "proteoforge.clustering._distance",
+    "proteoforge.clustering._silhouette",
+    "proteoforge.clustering._cuts",
+]
+disable_error_code = ["untyped-decorator", "no-any-return"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
 addopts = ["--strict-markers", "--strict-config"]
 
 [tool.coverage.run]
 branch = true
 source = ["proteoforge"]
-omit = ["src/proteoforge/_version.py"]
+omit = [
+    "src/proteoforge/_version.py",
+    # numba JIT modules: omit from coverage (oracles cover behavior)
+    "src/proteoforge/clustering/_distance.py",
+    "src/proteoforge/clustering/_linkage.py",
+    "src/proteoforge/clustering/_silhouette.py",
+    "src/proteoforge/clustering/_cuts.py",
+]
 
 [tool.coverage.report]
 show_missing = true

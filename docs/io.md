@@ -110,7 +110,7 @@ dataset = prepare(peptides, config, provenance=masks)
 
 ## FASTA
 
-`read_fasta()` returns a minimal Polars table with columns `entry` (header without `>`) and `sequence`. Full sequence annotation is not part of v0.0.2; this loader exists for early integration tests and future sequence modules.
+`read_fasta()` returns a minimal Polars table with columns `entry` (header without `>`) and `sequence`. Full sequence annotation is not implemented; this loader exists for early integration tests and future sequence modules.
 
 ## Deprecated helpers
 

@@ -1,13 +1,4 @@
-"""
-Per-protein long fitting blocks.
-
-Turns the long ``PreparedDataset.peptides`` table into the arrays the
-one-vs-rest model fits on: a response vector, integer condition and peptide
-codes, and optional per-row WLS weights. Each block holds the full long layout
-of one protein (every peptide-by-sample measurement is a row), keyed by
-``(peptide_id, sample_id)`` in a stable order. This is the fitting substrate;
-no wide pivot happens here.
-"""
+"""Per-protein long arrays for one-vs-rest fitting."""
 
 from __future__ import annotations
 

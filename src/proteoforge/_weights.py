@@ -1,12 +1,4 @@
-"""
-Mask-derived WLS weights.
-
-Ports the imputation-weight contract from the reference
-``calculate_imputation_weights`` into the package. Measured entries get weight
-1.0, condition-wide imputed entries get ``config.wls_biological_weight``, and
-sparse imputed entries get a near-zero floor. Weights are per row, aligned to
-the long peptide table; they feed WLS only and are inactive under RLM.
-"""
+"""Imputation weights for WLS (inactive under RLM)."""
 
 from __future__ import annotations
 

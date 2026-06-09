@@ -74,5 +74,6 @@ joined = dataset.peptides.join(
 ## Related pages
 
 - [PreparedDataset](prepared-dataset.md): input to discordance
+- [Clustering](clustering.md): downstream Module 3 on discordant proteins
 - [Configuration](config.md): `model`, `fdr`, `n_jobs`, correction fields
 - [Prepare](prepare.md): builds the handoff object

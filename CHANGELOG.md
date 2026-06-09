@@ -5,9 +5,25 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+## [0.0.3] - 2026-06-08
+
+Module 3 clustering and dPF assignment.
+
+### Added
+
+- `run_cluster()`, `assign_proteoforms()`, and `ClusterResult` / `ProteoformMappingResult` for the prepare -> discordance -> cluster -> dPF pipeline
+- Numba clustering geometry under `proteoforge.clustering` (Euclidean pdist, Ward linkage, hybrid outlier cut)
+- [Clustering](docs/clustering.md) user documentation
+- `ProteoForgeValidationError` and `ProteoForgeIOError` on the top-level `proteoforge` import
+- `DiscordanceResult.table` contract validation at construction
+
 ### Changed
 
 - CI: single ubuntu job on Python 3.12 until v0.1.0; full OS and version matrix deferred. Python 3.15 excluded while still in beta.
+
+### Fixed
+
+- `prepare_from_parquet`: missing paths raise `ProteoForgeIOError`
 
 ## [0.0.2] - 2026-06-06
 

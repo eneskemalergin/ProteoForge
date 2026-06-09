@@ -11,9 +11,21 @@ from proteoforge._exceptions import ProteoForgeIOError, ProteoForgeValidationErr
 from proteoforge.types import ColumnMap, DesignTable
 
 ModelName = Literal["rlm", "wls", "ebayes"]
-CutStrategy = Literal["hybrid_outlier", "fixed_height", "dynamic_tree"]
+CutMethod = Literal["hybrid_outlier", "fixed_height", "dynamic_tree"]
 
 _LOADABLE_MODELS: frozenset[str] = frozenset({"rlm", "wls"})
+
+
+def _optional_int(value: object) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+        msg = "cluster_max_clusters must be an integer or null."
+        raise ProteoForgeValidationError(msg)
+    return int(value)
+
+
+_VALID_LINKAGE_METHODS: frozenset[str] = frozenset({"ward"})
 _VALID_CUT_STRATEGIES: frozenset[str] = frozenset(
     {"hybrid_outlier", "fixed_height", "dynamic_tree"}
 )
@@ -38,7 +50,12 @@ class Config:
     model: ModelName = "rlm"
     fdr: float = 0.001
     linkage: str = "ward"
-    cut: CutStrategy = "hybrid_outlier"
+    cut: CutMethod = "hybrid_outlier"
+    cluster_min_clusters: int = 1
+    cluster_max_clusters: int | None = None
+    fixed_n_clusters: int = 2
+    hybrid_outlier_threshold: float = 0.05
+    cluster_min_peptides: int = 2
     n_jobs: int = -1
     wls_biological_weight: float = 0.5
     correction_within: str = "bonferroni"
@@ -101,7 +118,7 @@ class Config:
             msg = "wls_biological_weight must be in (0, 1]."
             raise ProteoForgeValidationError(msg)
         if self.model == "ebayes":
-            msg = "model='ebayes' is not implemented in v0.0.2. Use 'rlm' or 'wls'."
+            msg = "model='ebayes' is not implemented. Use 'rlm' or 'wls'."
             raise ProteoForgeValidationError(msg)
         if self.model not in _LOADABLE_MODELS:
             msg = (
@@ -112,6 +129,27 @@ class Config:
         if self.cut not in _VALID_CUT_STRATEGIES:
             valid = sorted(_VALID_CUT_STRATEGIES)
             msg = f"cut '{self.cut}' is not supported. Valid: {valid}."
+            raise ProteoForgeValidationError(msg)
+        if self.linkage not in _VALID_LINKAGE_METHODS:
+            valid = sorted(_VALID_LINKAGE_METHODS)
+            msg = f"linkage '{self.linkage}' is not supported. Valid: {valid}."
+            raise ProteoForgeValidationError(msg)
+        if self.cluster_min_clusters < 1:
+            msg = "cluster_min_clusters must be at least 1."
+            raise ProteoForgeValidationError(msg)
+        if self.cluster_max_clusters is not None and (
+            self.cluster_max_clusters < self.cluster_min_clusters
+        ):
+            msg = "cluster_max_clusters cannot be less than cluster_min_clusters."
+            raise ProteoForgeValidationError(msg)
+        if self.fixed_n_clusters < 1:
+            msg = "fixed_n_clusters must be at least 1."
+            raise ProteoForgeValidationError(msg)
+        if self.cluster_min_peptides < 1:
+            msg = "cluster_min_peptides must be at least 1."
+            raise ProteoForgeValidationError(msg)
+        if not -1.0 <= self.hybrid_outlier_threshold <= 1.0:
+            msg = "hybrid_outlier_threshold must be between -1 and 1."
             raise ProteoForgeValidationError(msg)
 
         from proteoforge._correction import VALID_METHODS
@@ -201,6 +239,13 @@ class Config:
             msg = "Config must include 'control_condition'."
             raise ProteoForgeValidationError(msg)
 
+        if "profile_aggregation" in data and data["profile_aggregation"] != "median":
+            msg = (
+                "profile_aggregation is not configurable in v0.0.3; "
+                "clustering uses median condition profiles."
+            )
+            raise ProteoForgeValidationError(msg)
+
         return cls(
             control_condition=str(data["control_condition"]),
             conditions=conditions,
@@ -211,6 +256,11 @@ class Config:
             fdr=float(data.get("fdr", 0.001)),
             linkage=str(data.get("linkage", "ward")),
             cut=data.get("cut", "hybrid_outlier"),
+            cluster_min_clusters=int(data.get("cluster_min_clusters", 1)),
+            cluster_max_clusters=_optional_int(data.get("cluster_max_clusters")),
+            fixed_n_clusters=int(data.get("fixed_n_clusters", 2)),
+            hybrid_outlier_threshold=float(data.get("hybrid_outlier_threshold", 0.05)),
+            cluster_min_peptides=int(data.get("cluster_min_peptides", 2)),
             n_jobs=int(data.get("n_jobs", -1)),
             wls_biological_weight=float(data.get("wls_biological_weight", 0.5)),
             correction_within=str(data.get("correction_within", "bonferroni")),
@@ -306,11 +356,41 @@ class Config:
                     "exclusiveMaximum": 1,
                     "default": 0.001,
                 },
-                "linkage": {"type": "string", "default": "ward"},
+                "linkage": {
+                    "type": "string",
+                    "enum": ["ward"],
+                    "default": "ward",
+                },
                 "cut": {
                     "type": "string",
                     "enum": ["hybrid_outlier", "fixed_height", "dynamic_tree"],
                     "default": "hybrid_outlier",
+                },
+                "cluster_min_clusters": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                },
+                "cluster_max_clusters": {
+                    "type": ["integer", "null"],
+                    "minimum": 1,
+                    "default": None,
+                },
+                "fixed_n_clusters": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 2,
+                },
+                "hybrid_outlier_threshold": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 1,
+                    "default": 0.05,
+                },
+                "cluster_min_peptides": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 2,
                 },
                 "n_jobs": {"type": "integer", "default": -1},
                 "wls_biological_weight": {

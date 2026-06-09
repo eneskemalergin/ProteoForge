@@ -1,12 +1,4 @@
-"""
-Multiple-testing correction for p-values (NumPy only).
-
-Ported from the QuEStVar ``p_adjust`` module into the MIT package. Provides
-Bonferroni, Holm, Hochberg, Benjamini-Hochberg, and Benjamini-Yekutieli
-adjustments matching R's ``p.adjust``. The Storey q-value path is disabled in
-Phase 2: it needs a scipy spline or a NumPy-only pi0 estimator and returns
-post-v0.1.0. No scipy import lives here.
-"""
+"""Multiple-testing correction matching R p.adjust (NumPy only; q-value deferred)."""
 
 from __future__ import annotations
 
@@ -22,10 +14,7 @@ VALID_METHODS: set[str | None] = {
     "fdr",
     "fdr_bh",
     "BY",
-    # "qvalue",  # deferred post-v0.1.0: needs scipy spline or numpy pi0
 }
-
-# _QVALUE_DEFAULT_LAMBDA = np.arange(0.05, 0.96, 0.05, dtype=np.float64)
 
 
 def p_adjust(
@@ -77,8 +66,6 @@ def p_adjust(
         return _fdr_bh(p, n)
     if method == "BY":
         return _fdr_by(p, n)
-    # if method == "qvalue":
-    #     return _qvalue(p, n)  # deferred: needs scipy spline or numpy pi0
     return p.copy()
 
 

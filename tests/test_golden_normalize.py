@@ -1,8 +1,4 @@
-"""
-Golden normalization tests against reference ``against_condition`` behavior.
-
-Tolerance: ``rtol=1e-10``, ``atol=1e-12`` for float64 paths.
-"""
+"""Golden normalization tests against reference against_condition behavior."""
 
 from __future__ import annotations
 
@@ -13,6 +9,10 @@ from proteoforge import Config, prepare
 from proteoforge._normalize import normalize_control_relative
 from proteoforge.schema import NORMALIZED_INTENSITY
 
+# Golden float64 tolerances: rtol=1e-10, atol=1e-12
+_GOLDEN_RTOL = 1e-10
+_GOLDEN_ATOL = 1e-12
+
 
 def _reference_against_condition_numpy(
     intensity: np.ndarray,
@@ -20,7 +20,7 @@ def _reference_against_condition_numpy(
     *,
     input_is_log2: bool,
 ) -> np.ndarray:
-    """Reference logic mirroring normalize.against_condition (pandas ddof=1)."""
+    """Wide NumPy normalize path (pandas ``std`` ddof=1 for z-scoring)."""
     return normalize_control_relative(
         intensity,
         control_column_indices=control_indices,
@@ -77,8 +77,8 @@ def test_golden_matches_reference_algorithm(
     np.testing.assert_allclose(
         actual,
         expected,
-        rtol=1e-10,
-        atol=1e-12,
+        rtol=_GOLDEN_RTOL,
+        atol=_GOLDEN_ATOL,
     )
 
 
