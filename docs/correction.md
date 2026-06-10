@@ -63,60 +63,14 @@ The global pool has thousands of peptides. `fdr_bh` at `fdr=0.001` is already a 
 
 The two-step procedure is the shipped contract; it is not identical to a single pooled BH pass on raw p-values.
 
-## Independent hypothesis weighting (IHW)
-
-`proteoforge.correction.ihw.adjust_ihw()` implements Bioconductor-style IHW: covariate strata, cross-validated weight learning, and weighted Benjamini-Hochberg (or Bonferroni). It is **not** wired into `Config` or `run_discordance()` yet. Call it from library code when you have a covariate aligned with each p-value.
-
-```python
-import numpy as np
-from proteoforge.correction.ihw import adjust_ihw
-
-rng = np.random.default_rng(1)
-result = adjust_ihw(pvalues, covariates, alpha=0.1, seed=1, rng=rng)
-result.adj_pvalues
-result.weights
-result.folds
-```
-
-The covariate must be independent of the p-value under the null (for example mean normalized intensity per peptide). Plan on a global pool with hundreds or thousands of hypotheses; within-protein families are too small for stable bin weights.
-
-`IHWResult` holds `adj_pvalues`, `weights`, `weighted_pvalues`, `groups` (bin index per hypothesis), `folds`, and run settings (`alpha`, `nbins`, `nfolds`, `penalty`, `adjustment_type`). With fixed `seed`, `rng`, and optional `folds`, Python results are reproducible on the same machine.
-
-### Regularization grid (`lambdas`)
-
-IHW learns a weight for each covariate bin, then smooths that weight profile so it does not overfit noise. The smoothing strength is controlled by a regularization parameter λ (lambda): lower λ allows sharper weight changes across bins; higher λ favors smoother profiles; λ = ∞ uses the maximum-flexibility convex fit used in most parity checks.
-
-**`lambdas="auto"` (default)**
-
-:   Build the same candidate grid as Bioconductor IHW from `nbins` and fixed anchors (including 0 and ∞). On each outer CV fold, nested cross-validation picks the candidate with the most rejections on held-out data. All candidates on one random split share the same internal fold assignment.
-
-**Explicit array**
-
-:   Pass your own candidates, for example `np.array([np.inf])` for a single strength or `[0.0, 1.0, np.inf]` for a custom grid. With one value, inner λ selection is skipped.
-
-For a fixed, fast run, use one explicit λ (often `np.inf`), plus `seed` and optional `folds`. For the full grid search, keep `lambdas="auto"`. Defaults are `nfolds=5`, `nfolds_internal=5`, `nsplits_internal=1`, and `nbins="auto"`.
-
-### Random folds and adjusted p-values
-
-!!! warning "IHW adjusted p-values depend on random cross-validation"
-
-    `adjust_ihw()` uses randomness in three places:
-
-    - tie-breaking when binning ordinal covariates
-    - assignment of hypotheses to CV folds (default `nfolds=5`)
-    - nested splits when choosing λ from the grid
-
-    **Same method, same data:** fixed `seed`, `rng`, and optional pre-specified `folds` give reproducible Python results. Different seeds or fold assignments change weights and adjusted p-values slightly. That variability is part of the estimator, not a bug.
-
-    **Python vs Bioconductor:** adjusted p-values match at machine precision when folds and binning match (for example `nfolds=1` with the same `seed`). With default multi-fold CV, R and Python draw different random folds, so full outputs will not match bit-for-bit even when the LP core agrees. Compare with prespecified `folds`, or treat small differences as expected.
-
-    **Different correction methods:** BH, q-value, and IHW target different procedures. Adjusted p-values agree only in degenerate cases (for example uniform IHW weights reducing to BH). Do not expect `fdr_bh` and `adjust_ihw()` to return the same numbers on the same raw p-values.
-
-    For production runs, record `seed`, `nfolds`, and returned `folds` / `weights` in metadata when IHW is enabled. `nfolds=1` learns weights without proper pre-validation; R documents it for weight exploration only, not for final testing.
-
 ## Parity notes
 
-Classical methods (`holm`, `hommel`, `hochberg`, `fdr_bh`, `BY`) follow R `p.adjust` where applicable. The shipped unit tests cover IHW weights, the convex LP, and standard adjustment paths; full Bioconductor cross-checks are a maintainer workflow outside the default test suite.
+All config-selectable methods are validated for production use:
+
+- **R `p.adjust` parity:** `bonferroni`, `holm`, `hommel`, `hochberg`, `fdr_bh`, `BY` (unit tests; `hommel` honors the R `n` padding argument via `n_tests`).
+- **`qvalue`:** Storey step-up with GCV pi0 on the shipped lambda grid (no SciPy at runtime). Matches Bioconductor `qvalue` on rejection counts across synthetic and real DE p-value fixtures; bit-identical on airway-scale data when pi0 clips to 1.
+
+Dev tests with the optional `ref` dependency group also assert `qvalue` against a scipy smoothing-spline reference implementation.
 
 ## Related pages
 

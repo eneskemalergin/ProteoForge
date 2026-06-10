@@ -37,7 +37,7 @@ Set `model` in [Configuration](config.md).
 
 Correction is two-step: within protein, then global. Defaults are `correction_within: bonferroni` and `correction_global: fdr_bh`. `fdr` (default `0.001`) sets the cutoff on `adjusted_p_value` for `is_discordant`.
 
-Supported config methods include `holm`, `hommel`, `hochberg`, `fdr_bh`, `BY`, and `qvalue` at either step. Method semantics and the optional IHW library API are in [Multiple-testing correction](correction.md).
+Supported config methods include `holm`, `hommel`, `hochberg`, `fdr_bh`, `BY`, and `qvalue` at either step. Method semantics are in [Multiple-testing correction](correction.md).
 
 ## Parallelism
 
@@ -100,7 +100,7 @@ Common keys on `result.metadata`:
 ## Related pages
 
 - [PreparedDataset](prepared-dataset.md): input to discordance
-- [Multiple-testing correction](correction.md): methods, defaults, IHW notes
+- [Multiple-testing correction](correction.md): methods, defaults, two-step flow
 - [Clustering](clustering.md): downstream Module 3 on discordant proteins
 - [Configuration](config.md): `model`, `fdr`, `n_jobs`, correction fields
 - [Prepare](prepare.md): builds the handoff object

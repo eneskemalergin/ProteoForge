@@ -64,7 +64,6 @@ flowchart LR
   PR["ProteoformResults\ndiscover() planned"]
 
   CORR["Two-step correction\np_adjust methods"]
-  IHW["adjust_ihw()\nlibrary only"]
 
   ingest --> IN
   IN --> N --> D --> C --> P
@@ -74,7 +73,6 @@ flowchart LR
   P --> r4
   P -.-> PR
   CORR -.-> D
-  IHW -.-> CORR
 
   style N fill:#059669,color:#fff
   style D fill:#059669,color:#fff
@@ -83,7 +81,6 @@ flowchart LR
   style PR fill:#64748b,color:#fff
   style ingest fill:#e2e8f0,color:#1e293b
   style results fill:#e2e8f0,color:#1e293b
-  style IHW fill:#cbd5e1,color:#1e293b
 ```
 
 **Ingest** (`proteoforge.io`): `read_peptides()`, `read_provenance()`, `read_fasta()`; semicolon-separated accessions collapse to a canonical UniProt-length representative during harmonization.
@@ -92,7 +89,7 @@ flowchart LR
 
 - RLM (default) and WLS (mask-derived or precomputed weights)
 - Two-step correction (`bonferroni` within, `fdr_bh` global by default; also `holm`, `hommel`, `hochberg`, `BY`, `qvalue`)
-- `p_adjust()` / `p_adjust_by_group()` exported from `proteoforge`; IHW library under `proteoforge.correction.ihw` (not in config yet)
+- `p_adjust()` / `p_adjust_by_group()` exported from `proteoforge` (`fdr_bh`, `qvalue`, `hommel`, etc.)
 - Shape-group batching and parallel RLM pool
 
 **Module 3 (clustering and dPF)**
@@ -220,7 +217,7 @@ uv run mypy
 uv run pytest tests --cov=proteoforge --cov-report=term-missing
 ```
 
-Tests use small fixtures in `tests/fixtures/`. For bundled parquet configs used in integration tests, see `load_fixture_bundle()` in `proteoforge.fixture`.
+Tests use small fixtures in `tests/fixtures/`. For bundled parquet configs used in integration tests, use `load_fixture_bundle()` from the top-level `proteoforge` import.
 
 Tag `vX.Y.Z` to trigger trusted PyPI publish (`hatch-vcs` versioning).
 

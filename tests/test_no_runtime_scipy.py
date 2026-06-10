@@ -34,7 +34,7 @@ def test_runtime_imports_stay_numpy_only() -> None:
 
 
 def test_src_does_not_import_scipy_or_sklearn() -> None:
-    # Parity oracles live in tests/ and tmp/, not src/
+    # SciPy/sklearn imports belong in tests/, not src/
     root = Path(__file__).resolve().parents[1] / "src" / "proteoforge"
     forbidden = ("scipy", "sklearn", "statsmodels", "sknetwork", "dynamicTreeCut")
     offenders: list[str] = []

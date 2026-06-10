@@ -12,7 +12,6 @@ from proteoforge.correction.qvalue import adjust_qvalues
 
 from . import _methods
 
-# Extend when adding IHW and other weighted correctors.
 VALID_METHODS: set[str | None] = {
     None,
     "none",

@@ -94,7 +94,7 @@ Defaults match canonical names (identity mapping). Omitted `column_map` fields u
 - `correction_global` (default `fdr_bh`): global method passed to `p_adjust` on within-protein adjusted values.
 - `n_jobs` (default `-1`): parallel worker count for discordance shape groups and clustering (`-1` maps to `min(8, cpu_count // 2)`).
 
-Allowed values for both correction fields: `bonferroni`, `holm`, `hommel`, `hochberg`, `fdr`, `fdr_bh`, `BY`, `qvalue`. See [Multiple-testing correction](correction.md) for control targets and usage notes. Independent hypothesis weighting (`ihw`) is implemented under `proteoforge.correction.ihw` but is not a config option yet.
+Allowed values for both correction fields: `bonferroni`, `holm`, `hommel`, `hochberg`, `fdr`, `fdr_bh`, `BY`, `qvalue`. See [Multiple-testing correction](correction.md) for control targets and usage notes.
 
 These fields do not change normalization in `prepare()`.
 
@@ -120,11 +120,10 @@ data = config.to_dict()
 updated = config.replace(min_peptides=3)
 ```
 
-JSON Schema for tooling and editors:
+JSON Schema for tooling and editors: `src/proteoforge/schemas/config.schema.json` in the repository. CI checks it against `Config.to_json_schema()`.
 
 ```python
 schema = Config.to_json_schema()
-config.write_json_schema("config.schema.json")
 ```
 
 ## Related pages

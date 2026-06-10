@@ -5,7 +5,7 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
-Correction subpackage (q-value, Hommel), IHW library module, and multiple-testing user documentation.
+Correction subpackage (q-value, Hommel) and multiple-testing user documentation.
 
 ### Added
 
@@ -13,8 +13,6 @@ Correction subpackage (q-value, Hommel), IHW library module, and multiple-testin
 - Hommel adjustment via `p_adjust(..., "hommel")`, R `p.adjust` parity including `n_tests` padding
 - `proteoforge.correction` subpackage with `p_adjust`, `p_adjust_by_group`, and `VALID_METHODS` (also exported from `proteoforge`)
 - `correction_within` / `correction_global` config values: `hommel`, `qvalue`
-- `proteoforge.correction.ihw` with `adjust_ihw()` (Bioconductor IHW port; library-only, not wired into `Config` or `run_discordance()`)
-- `tests/test_correction_ihw.py`
 - [Multiple-testing correction](docs/correction.md); mkdocs nav entries for correction and clustering
 
 ### Changed
@@ -22,8 +20,11 @@ Correction subpackage (q-value, Hommel), IHW library module, and multiple-testin
 - Hommel adjustment uses an O(n) kernel in `correction._hommel`. R `p.adjust` parity unchanged.
 - Correction implementation moved from `_correction.py` into `proteoforge.correction` (`_methods`, `qvalue/`); `_correction.py` remains a backward-compatible re-export
 - User docs: discordance batching and `metadata`, WLS weight tiers, config YAML correction fields, index shipped/planned list, cross-links across guides
-- README: correction method summary, doc link to `correction.md`, example `fdr` / `correction_*` config keys
-- Updated the diagrams in the docs and readme to include more details around API/CLI and other steps that are not covered in the docs yet.
+- README and docs index: pipeline diagrams and correction method summary aligned with shipped Modules 1 to 3
+
+### Removed
+
+- Unreleased experimental `proteoforge.correction.ihw` subpackage (never shipped on PyPI)
 
 ## [0.0.3] - 2026-06-08
 

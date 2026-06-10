@@ -10,7 +10,6 @@ ProteoForge discovers differential proteoforms from an imputed peptide matrix an
 - `read_peptides()`, `prepare()`, `prepare_from_parquet()`
 - `run_discordance()` with RLM and WLS, two-step correction (`bonferroni` / `fdr_bh` defaults, plus `holm`, `hommel`, `hochberg`, `BY`, `qvalue`)
 - `p_adjust()`, `p_adjust_by_group()`, `VALID_METHODS` on the top-level `proteoforge` import
-- `proteoforge.correction.ihw.adjust_ihw()` (library only, not wired into `Config` yet)
 - `run_cluster()`, `assign_proteoforms()`, Numba clustering geometry
 - `load_fixture_bundle()` for committed test fixtures
 
@@ -18,7 +17,6 @@ ProteoForge discovers differential proteoforms from an imputed peptide matrix an
 
 - `discover()`, `ProteoformResults`, HTML report, Typer CLI (`proteoforge discover`)
 - `model="ebayes"`
-- IHW as a `correction_global` (or weighted) config option
 - Vendor-wide ingest, plotting extras beyond optional `plots` dependency
 
 See [Changelog](https://github.com/eneskemalergin/ProteoForge/blob/main/CHANGELOG.md) for release history.
@@ -54,7 +52,6 @@ flowchart LR
   PR["ProteoformResults\ndiscover() planned"]
 
   CORR["Two-step correction\np_adjust methods"]
-  IHW["adjust_ihw()\nlibrary only"]
 
   ingest --> IN
   IN --> N --> D --> C --> P
@@ -64,7 +61,6 @@ flowchart LR
   P --> r4
   P -.-> PR
   CORR -.-> D
-  IHW -.-> CORR
 
   style N fill:#059669,color:#fff
   style D fill:#059669,color:#fff
@@ -73,7 +69,6 @@ flowchart LR
   style PR fill:#64748b,color:#fff
   style ingest fill:#e2e8f0,color:#1e293b
   style results fill:#e2e8f0,color:#1e293b
-  style IHW fill:#cbd5e1,color:#1e293b
 ```
 
 Modules 1 to 3 (green) are `prepare()`, `run_discordance()`, `run_cluster()`, and `assign_proteoforms()`. Module 4 (grey) is not available yet.
@@ -95,7 +90,7 @@ Stage map (entry point, primary output):
 4. [PreparedDataset](prepared-dataset.md): handoff contract before Module 2
 5. [Normalization](normalization.md): control-relative transform inside prepare (Module 1 detail)
 6. [Discordance](discordance.md): `run_discordance()`, models, batching, outputs
-7. [Multiple-testing correction](correction.md): method list, two-step logic, IHW library notes
+7. [Multiple-testing correction](correction.md): method list, two-step logic, `p_adjust` API
 8. [Clustering](clustering.md): `run_cluster()` and `assign_proteoforms()` (Module 3)
 
 ## Quick example
