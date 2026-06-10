@@ -100,6 +100,24 @@ def test_hommel_large_n() -> None:
     np.testing.assert_allclose(p_adjust(p, "hommel"), expected, rtol=1e-10, atol=1e-12)
 
 
+def test_hommel_ties_match_statsmodels() -> None:
+    # statsmodels oracle, tied p-values
+    from statsmodels.stats.multitest import multipletests
+
+    p = np.array([0.001, 0.001, 0.01, 0.05, 0.05, 0.2, 1.0], dtype=np.float64)
+    expected = multipletests(p, method="hommel")[1]
+    np.testing.assert_allclose(p_adjust(p, "hommel"), expected, rtol=1e-10, atol=1e-12)
+
+
+def test_hommel_medium_n_sorted_uniform() -> None:
+    # statsmodels oracle, n=5000, ascending uniform
+    from statsmodels.stats.multitest import multipletests
+
+    p = np.sort(np.random.default_rng(7).uniform(0.0, 1.0, 5000))
+    expected = multipletests(p, method="hommel")[1]
+    np.testing.assert_allclose(p_adjust(p, "hommel"), expected, rtol=1e-10, atol=1e-12)
+
+
 def test_hommel_empty_returns_copy() -> None:
     empty = np.array([], dtype=np.float64)
     np.testing.assert_array_equal(p_adjust(empty, "hommel"), empty)

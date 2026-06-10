@@ -89,7 +89,7 @@ Common keys on `result.metadata`:
 
 - `model`, `correction_within`, `correction_global`, `fdr`, `batching`
 - `n_proteins`, `n_peptides_tested`, `n_peptides_flagged`, `n_peptides_skipped`
-- `skip_reason_counts`: dict of `fit_status` → count
+- `skip_reason_counts`: dict of `fit_status` to count
 - `n_jobs_requested`, `n_jobs_effective`, `parallel_applicable`, `n_shape_groups`
 - `parallel_fallback`, `parallel_fallback_reason` (when shape parallelism was requested but serial fitting ran)
 

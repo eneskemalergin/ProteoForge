@@ -35,23 +35,58 @@ The package does not impute, search, or quantify. Upstream imputation is require
 
 ## Pipeline
 
-Four modules from the ProteoForge method. Modules 1 to 3 are available in the current package. Module 4 (`ProteoformResults`, `discover()`) is planned.
+Four analysis modules from the ProteoForge method (solid arrows). Modules 1 to 3 ship today. Module 4 (`ProteoformResults`, `discover()`) is planned. Dotted arrows are ingest helpers, correction inside discordance, per-stage result types, and the future unified API.
 
 ```mermaid
 flowchart LR
-  IN["Imputed peptide matrix\n+ condition design"]
-  N["1. Normalize\ncontrol-relative intensities"]
-  D["2. Discordance\nIntensity ~ Condition × Peptide"]
-  C["3. Cluster\ndiscordant peptides"]
-  P["4. dPF assign\nmapping + quantities"]
-  OUT["ProteoformResults\nmapping, summary, exports"]
+  subgraph ingest ["Ingest and harmonization"]
+    direction TB
+    i1["read_peptides\nParquet, CSV, TSV"]
+    i2["read_provenance"]
+    i3["read_fasta"]
+    i4["UniProt group\nresolution"]
+  end
 
-  IN --> N
-  N --> D
-  D --> C
-  C --> P
-  P --> OUT
+  IN["Config +\nimputed matrix"]
+  N["1. Normalize\nprepare()"]
+  D["2. Discordance\nrun_discordance()"]
+  C["3. Cluster\nrun_cluster()"]
+  P["4. dPF assign\nassign_proteoforms()"]
+
+  subgraph results ["Typed results today"]
+    direction TB
+    r1["PreparedDataset"]
+    r2["DiscordanceResult"]
+    r3["ClusterResult"]
+    r4["ProteoformMappingResult\ndPF_0, dPF_1+, dPF_-1"]
+  end
+
+  PR["ProteoformResults\ndiscover() planned"]
+
+  CORR["Two-step correction\np_adjust methods"]
+  IHW["adjust_ihw()\nlibrary only"]
+
+  ingest --> IN
+  IN --> N --> D --> C --> P
+  N -.-> r1
+  D -.-> r2
+  C -.-> r3
+  P --> r4
+  P -.-> PR
+  CORR -.-> D
+  IHW -.-> CORR
+
+  style N fill:#059669,color:#fff
+  style D fill:#059669,color:#fff
+  style C fill:#059669,color:#fff
+  style P fill:#059669,color:#fff
+  style PR fill:#64748b,color:#fff
+  style ingest fill:#e2e8f0,color:#1e293b
+  style results fill:#e2e8f0,color:#1e293b
+  style IHW fill:#cbd5e1,color:#1e293b
 ```
+
+**Ingest** (`proteoforge.io`): `read_peptides()`, `read_provenance()`, `read_fasta()`; semicolon-separated accessions collapse to a canonical UniProt-length representative during harmonization.
 
 **Module 2 (discordance)**
 
@@ -64,6 +99,8 @@ flowchart LR
 
 - Ward linkage on peptide condition profiles with hybrid outlier cut (default)
 - dPF mapping (`dPF_0`, `dPF_-1`, positive differential proteoforms)
+
+**Results today:** call modules in sequence and keep `PreparedDataset`, `DiscordanceResult`, `ClusterResult`, and `ProteoformMappingResult` separately. **Planned:** `discover()` returning `ProteoformResults` (mapping, summary, file export).
 
 ## Installation
 

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import numpy as np
 import numpy.typing as npt
-from numba import njit
+
+from proteoforge.correction._hommel import _hommel_sorted
 
 
 def holm(pvalues: npt.NDArray[np.float64], n_tests: int) -> npt.NDArray[np.float64]:
@@ -32,36 +33,13 @@ def holm(pvalues: npt.NDArray[np.float64], n_tests: int) -> npt.NDArray[np.float
     return result
 
 
-@njit(cache=True)
-def _hommel_sorted_kernel(
-    sorted_p: npt.NDArray[np.float64],
-) -> npt.NDArray[np.float64]:
-    """Hommel closed-test kernel on ascending sorted p-values."""
-    n = sorted_p.shape[0]
-    adjusted = sorted_p.copy()
-    for k in range(n, 1, -1):
-        cim = np.inf
-        start = n - k
-        for j in range(k):
-            val = (k * sorted_p[start + j]) / (j + 1)
-            if val < cim:
-                cim = val
-        for j in range(n - k, n):
-            if cim > adjusted[j]:
-                adjusted[j] = cim
-        scale = float(k)
-        for j in range(n - k):
-            bound = scale * sorted_p[j]
-            if bound > cim:
-                bound = cim
-            if bound > adjusted[j]:
-                adjusted[j] = bound
-    return adjusted
-
-
 def hommel(pvalues: npt.NDArray[np.float64], n_tests: int) -> npt.NDArray[np.float64]:
     """
     Apply Hommel closed-test adjustment (R ``p.adjust(..., "hommel")``).
+
+    Sorts (and pads when needed), calls
+    :func:`~proteoforge.correction._hommel._hommel_sorted`, then restores
+    input order.
 
     Parameters
     ----------
@@ -86,10 +64,7 @@ def hommel(pvalues: npt.NDArray[np.float64], n_tests: int) -> npt.NDArray[np.flo
     )
     order = np.argsort(work)
     sorted_p = work[order]
-    if sorted_p.size <= 1:
-        adjusted = sorted_p.copy()
-    else:
-        adjusted = _hommel_sorted_kernel(sorted_p)
+    adjusted = sorted_p.copy() if sorted_p.size <= 1 else _hommel_sorted(sorted_p)
     out_work = np.empty_like(adjusted)
     out_work[order] = adjusted
     return np.minimum(out_work[:m], 1.0)

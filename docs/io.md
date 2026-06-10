@@ -2,6 +2,21 @@
 
 ProteoForge expects a **long-format** peptide intensity table: one row per `(protein_id, peptide_id, sample_id)`. The package does not impute, search, or quantify. Upstream imputation is required.
 
+Peptide tables feed the main pipeline through `prepare()`; FASTA is a separate sequence table for early integration and future modules.
+
+```mermaid
+flowchart TB
+  peptides["peptide file\nParquet, CSV, TSV"] --> read_peptides
+  prov["provenance file"] --> read_provenance
+  fasta["FASTA file"] --> read_fasta
+  read_peptides --> mat["materialize_peptide_table\n+ UniProt group resolution"]
+  read_provenance -.-> mat
+  read_fasta --> seq["Polars table\nentry, sequence"]
+  mat --> prep["prepare() / prepare_from_parquet()"]
+```
+
+See the full pipeline diagram on the [documentation home](index.md#pipeline).
+
 ## Supported file formats
 
 - **`read_peptides()`:** Parquet, CSV, TSV
