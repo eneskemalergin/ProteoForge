@@ -27,8 +27,8 @@ Dict with run statistics: `n_proteins`, `n_peptides`, `n_samples`, `nan_fraction
 - **`protein_id`, `peptide_id`, `sample_id`** (required): primary key; unique after validation
 - **`condition`** (required): from `Config.conditions`, not from raw input
 - **`intensity`** (required): raw input intensity (log2 or linear per config)
-- **`intensity_normalized`** (required): control-relative normalized value
-- **`is_real`, `is_complete_missing`, `weight`** (optional): retained when supplied; `PreparedDataset` array properties expose them only for `wls` (not `rlm`)
+- **`intensity_normalized`** (required): control-relative normalized value (Module 1 output)
+- **`is_real`, `is_complete_missing`, `weight`** (optional): retained when supplied; array properties expose them only for `wls` (not `rlm`)
 
 ## Keys and row order
 
@@ -61,6 +61,15 @@ Return aligned NumPy arrays when `config.model` is `wls` and the column exists o
 
 Values in `intensity_normalized` come from [control-relative normalization](normalization.md): optional log2, per-sample z-score across peptides, subtract peptide mean in the control condition.
 
+## Discordance handoff
+
+`run_discordance(prepared)` reads `intensity_normalized` and `config`. The returned table adds per-peptide p-values:
+
+- `raw_p_value`, `within_p_value`, `adjusted_p_value` (see [Multiple-testing correction](correction.md))
+- `is_discordant`, `fit_status`
+
+`PreparedDataset.config` must match the config embedded in `DiscordanceResult`, `ClusterResult`, and `ProteoformMappingResult` for downstream steps.
+
 ## Downstream use
 
 Pass a `PreparedDataset` to `run_discordance()` (Module 2) and `run_cluster()` (Module 3). See [Discordance](discordance.md) and [Clustering](clustering.md).
@@ -68,6 +77,8 @@ Pass a `PreparedDataset` to `run_discordance()` (Module 2) and `run_cluster()` (
 ## Related pages
 
 - [Prepare](prepare.md): how `PreparedDataset` is built
+- [Normalization](normalization.md): Module 1 transform detail
+- [Multiple-testing correction](correction.md): meaning of adjusted p-value columns after discordance
 - [Discordance](discordance.md): Module 2 entry point
 - [Clustering](clustering.md): Module 3 entry point
 - [Configuration](config.md): design and model options

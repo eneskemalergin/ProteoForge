@@ -56,7 +56,9 @@ flowchart LR
 **Module 2 (discordance)**
 
 - RLM (default) and WLS (mask-derived or precomputed weights)
-- Two-step multiple-testing correction, shape-group batching, parallel RLM pool
+- Two-step correction (`bonferroni` within, `fdr_bh` global by default; also `holm`, `hommel`, `hochberg`, `BY`, `qvalue`)
+- `p_adjust()` / `p_adjust_by_group()` exported from `proteoforge`; IHW library under `proteoforge.correction.ihw` (not in config yet)
+- Shape-group batching and parallel RLM pool
 
 **Module 3 (clustering and dPF)**
 
@@ -114,6 +116,9 @@ conditions:
   treated: [S3, S4]
 min_peptides: 4
 model: rlm
+fdr: 0.001
+correction_within: bonferroni
+correction_global: fdr_bh
 ```
 
 For in-memory tables use `prepare(df, config)` or `prepare(lazy_frame, config)`. Prefer `prepare_from_parquet` when starting from a file: it lazy-scans, projects columns, and filters to configured samples before materialization.
@@ -150,6 +155,7 @@ User documentation:
 - [Prepare](docs/prepare.md)
 - [Normalization](docs/normalization.md)
 - [Discordance](docs/discordance.md)
+- [Multiple-testing correction](docs/correction.md)
 - [Clustering](docs/clustering.md)
 - [PreparedDataset](docs/prepared-dataset.md)
 - [Changelog](CHANGELOG.md)
@@ -177,7 +183,7 @@ uv run mypy
 uv run pytest tests --cov=proteoforge --cov-report=term-missing
 ```
 
-Tests use small fixtures in `tests/fixtures/`.
+Tests use small fixtures in `tests/fixtures/`. For bundled parquet configs used in integration tests, see `load_fixture_bundle()` in `proteoforge.fixture`.
 
 Tag `vX.Y.Z` to trigger trusted PyPI publish (`hatch-vcs` versioning).
 

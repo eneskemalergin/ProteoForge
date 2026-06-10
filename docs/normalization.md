@@ -1,6 +1,6 @@
 # Normalization
 
-Module 1 in the ProteoForge method: control-relative normalization of peptide intensities before discordance modeling. The production path is `normalize_control_relative_long()` in `proteoforge._normalize`, called from `prepare()`.
+Module 1 in the ProteoForge method: control-relative normalization of peptide intensities before discordance modeling. There is no separate `run_normalize()` call. The production path is `normalize_control_relative_long()` inside `prepare()`, which writes `intensity_normalized` on `PreparedDataset.peptides`.
 
 Input: long-format table with `protein_id`, `peptide_id`, `sample_id`, `intensity`, and control samples identified by config.
 
@@ -45,4 +45,4 @@ Normalization matches `against_condition` in the [ProteoForge analysis repositor
 
 **`intensity_normalized`**: `float64`, one value per row, appended to the peptide table inside `PreparedDataset.peptides`. Access as a column or via the `PreparedDataset.intensity_normalized` property (1-D NumPy array aligned to row order).
 
-See [PreparedDataset](prepared-dataset.md) for the full handoff contract.
+See [PreparedDataset](prepared-dataset.md) for the full handoff contract. Module 2 reads `intensity_normalized` in [Discordance](discordance.md). Multiple-testing correction runs after model fitting; see [Multiple-testing correction](correction.md).

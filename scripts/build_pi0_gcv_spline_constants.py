@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build banded design matrices for the Storey pi0 GCV spline (run when grid changes)."""
+"""Build banded design matrices for the Storey pi0 GCV spline grid."""
 
 from __future__ import annotations
 
@@ -7,7 +7,8 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from scipy.interpolate import BSpline, _bsplines as bs
+from scipy.interpolate import BSpline
+from scipy.interpolate import _bsplines as bs
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))

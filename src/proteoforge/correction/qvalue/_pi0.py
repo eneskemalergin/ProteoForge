@@ -32,9 +32,9 @@ def pi0_lambda_curve(
     """
     m = len(pvalues)
     sorted_p = np.sort(pvalues)
-    counts = (
-        m - np.searchsorted(sorted_p, QVALUE_LAMBDAS, side="right")
-    ).astype(np.float64)
+    counts = (m - np.searchsorted(sorted_p, QVALUE_LAMBDAS, side="right")).astype(
+        np.float64
+    )
     pi0_lambda = counts / (m * (1.0 - QVALUE_LAMBDAS))
     return counts, pi0_lambda
 

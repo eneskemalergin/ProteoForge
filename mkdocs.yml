@@ -33,6 +33,8 @@ nav:
       - Prepare: prepare.md
       - Normalization: normalization.md
       - Discordance: discordance.md
+      - Multiple-testing correction: correction.md
+      - Clustering: clustering.md
       - PreparedDataset: prepared-dataset.md
 
 markdown_extensions:

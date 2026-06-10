@@ -5,7 +5,6 @@ from __future__ import annotations
 from importlib.metadata import PackageNotFoundError, version
 
 from proteoforge._config import Config
-from proteoforge.correction import VALID_METHODS, p_adjust, p_adjust_by_group
 from proteoforge._exceptions import ProteoForgeIOError, ProteoForgeValidationError
 from proteoforge.cluster import (
     ClusterResult,
@@ -13,6 +12,7 @@ from proteoforge.cluster import (
     assign_proteoforms,
     run_cluster,
 )
+from proteoforge.correction import VALID_METHODS, p_adjust, p_adjust_by_group
 from proteoforge.discordance import DiscordanceResult, run_discordance
 from proteoforge.fixture import FixtureBundle, load_fixture_bundle
 from proteoforge.prepare import prepare, prepare_from_parquet, validate_and_prepare

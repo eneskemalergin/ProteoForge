@@ -43,7 +43,7 @@ After harmonization, every peptide table must contain:
 
 ## Optional provenance columns
 
-For imputation-aware modeling (WLS and empirical-Bayes paths):
+For imputation-aware WLS modeling (`model="wls"`; `ebayes` is not implemented):
 
 - **`is_real`**: `true` if the intensity was measured; `false` if imputed
 - **`is_complete_missing`**: `true` if the value stands in for condition-wide missingness
@@ -54,7 +54,7 @@ These may live in the main peptide file or in a separate table joined via `prepa
 - a precomputed **`weight`** column, or
 - **both** **`is_real`** and **`is_complete_missing`** (mask-derived tiered weights)
 
-A single mask column alone is not sufficient and `prepare()` will reject the input.
+A single mask column alone is not sufficient and `prepare()` will reject the input. When masks are supplied without a precomputed `weight` column, `run_discordance()` derives tiered weights at fit time. See [Prepare](prepare.md#wls-observation-weights).
 
 ## Column harmonization
 
@@ -122,4 +122,4 @@ dataset = prepare(peptides, config, provenance=masks)
 - **`ProteoForgeIOError`**: missing file, unsupported extension, parse failure
 - **`ProteoForgeValidationError`**: missing columns after harmonization, provenance key mismatch, empty table
 
-See [Prepare](prepare.md) for the full validation checklist applied after I/O.
+See [Prepare](prepare.md) for the full validation checklist applied after I/O. Canonical correction method names for YAML are listed in [Configuration](config.md) and [Multiple-testing correction](correction.md).

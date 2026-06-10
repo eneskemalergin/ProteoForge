@@ -93,6 +93,16 @@ For `model="wls"`, `prepare()` requires a `weight` column or **both** `is_real` 
 
 Normalization itself does not branch on `model`. The field gates provenance validation and selects the discordance backend in `run_discordance()` (RLM and WLS).
 
+## WLS observation weights
+
+`prepare()` retains a `weight` column when present. When `model="wls"` and only masks are supplied, `run_discordance()` derives per-observation weights at fit time from `is_real` and `is_complete_missing`:
+
+- **Measured** (`is_real=true`): weight `1.0`
+- **Condition-wide imputed** (`is_real=false`, `is_complete_missing=true`): `config.wls_biological_weight` (default `0.5`)
+- **Sparse imputed** (all other imputed entries): `1e-5`
+
+Pass a precomputed `weight` column on the peptide table to skip mask derivation. RLM ignores weights at fit time even if provenance columns remain on `peptides`.
+
 ## Errors and exceptions
 
 - **`ProteoForgeValidationError`:** failed design, duplicate keys, missing samples, WLS without sufficient provenance, `model='ebayes'`, normalization preconditions
@@ -105,5 +115,6 @@ Message text includes offending keys, sample IDs, or protein examples where appl
 - [Configuration](config.md): YAML and design rules
 - [Input and output](io.md): formats and harmonization
 - [Normalization](normalization.md): transform details
-- [Discordance](discordance.md): Module 2 entry point
 - [PreparedDataset](prepared-dataset.md): output schema
+- [Discordance](discordance.md): Module 2 entry point
+- [Multiple-testing correction](correction.md): applied inside discordance

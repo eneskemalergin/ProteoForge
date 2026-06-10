@@ -5,18 +5,23 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
-Multiple-testing correction expanded for q-values, Hommel, and future weighted methods.
+Correction subpackage (q-value, Hommel), IHW library module, and multiple-testing user documentation.
 
 ### Added
 
 - Storey q-value correction via `p_adjust(..., "qvalue")`, with GCV pi0 on the shipped lambda grid (`proteoforge.correction.qvalue`)
 - Hommel adjustment via `p_adjust(..., "hommel")`, R `p.adjust` parity including `n_tests` padding
-- `proteoforge.correction` subpackage exporting `p_adjust`, `p_adjust_by_group`, and `VALID_METHODS`
+- `proteoforge.correction` subpackage with `p_adjust`, `p_adjust_by_group`, and `VALID_METHODS` (also exported from `proteoforge`)
 - `correction_within` / `correction_global` config values: `hommel`, `qvalue`
+- `proteoforge.correction.ihw` with `adjust_ihw()` (Bioconductor IHW port; library-only, not wired into `Config` or `run_discordance()`)
+- `tests/test_correction_ihw.py`
+- [Multiple-testing correction](docs/correction.md); mkdocs nav entries for correction and clustering
 
 ### Changed
 
 - Correction implementation moved from `_correction.py` into `proteoforge.correction` (`_methods`, `qvalue/`); `_correction.py` remains a backward-compatible re-export
+- User docs: discordance batching and `metadata`, WLS weight tiers, config YAML correction fields, index shipped/planned list, cross-links across guides
+- README: correction method summary, doc link to `correction.md`, example `fdr` / `correction_*` config keys
 
 ## [0.0.3] - 2026-06-08
 

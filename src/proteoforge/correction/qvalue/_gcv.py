@@ -16,7 +16,9 @@ _BOUNDED_XATOL = 1e-5
 _BOUNDED_MAXITER = 500
 
 
-def _banded_to_dense(ab: npt.NDArray[np.float64], lower: int, upper: int) -> npt.NDArray[np.float64]:
+def _banded_to_dense(
+    ab: npt.NDArray[np.float64], lower: int, upper: int
+) -> npt.NDArray[np.float64]:
     n = ab.shape[1]
     dense = np.zeros((n, n), dtype=np.float64)
     for j in range(n):
@@ -33,8 +35,8 @@ def _compute_banded_symmetric_xt_wy(
     w_y = y_banded.copy()
     w_y[2] *= w
     for i in range(2):
-        w_y[i, 2 - i :] *= w[:-2 + i]
-        w_y[3 + i, :-1 - i] *= w[1 + i :]
+        w_y[i, 2 - i :] *= w[: -2 + i]
+        w_y[3 + i, : -1 - i] *= w[1 + i :]
     n = x_banded.shape[1]
     out = np.zeros((4, n), dtype=np.float64)
     for i in range(n):
@@ -84,7 +86,9 @@ def _banded5_to_dense(ab: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
 
 
 @njit(cache=True)
-def _solve_dense(a: npt.NDArray[np.float64], b: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+def _solve_dense(
+    a: npt.NDArray[np.float64], b: npt.NDArray[np.float64]
+) -> npt.NDArray[np.float64]:
     n = a.shape[0]
     aug = np.empty((n, n + 1), dtype=np.float64)
     for i in range(n):
@@ -124,7 +128,9 @@ def _solve_dense(a: npt.NDArray[np.float64], b: npt.NDArray[np.float64]) -> npt.
 
 
 @njit(cache=True)
-def _cholesky_banded4_from_dense(lhs_banded: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+def _cholesky_banded4_from_dense(
+    lhs_banded: npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
     a = _banded4_to_dense(lhs_banded)
     l_mat = _cholesky_lower(a)
     if np.any(np.isnan(l_mat)):
@@ -139,7 +145,9 @@ def _cholesky_banded4_from_dense(lhs_banded: npt.NDArray[np.float64]) -> npt.NDA
 
 
 @njit(cache=True)
-def _compute_b_inv_numba(lhs_banded: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+def _compute_b_inv_numba(
+    lhs_banded: npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
     n = lhs_banded.shape[1]
     nrows = 4
     u = _cholesky_banded4_from_dense(lhs_banded)
@@ -264,7 +272,11 @@ def _minimize_scalar_bounded(
             q = abs(q)
             r = e
             e = rat
-            if (abs(p) < abs(0.5 * q * r)) and (p > q * (a - xf)) and (p < q * (b - xf)):
+            if (
+                (abs(p) < abs(0.5 * q * r))
+                and (p > q * (a - xf))
+                and (p < q * (b - xf))
+            ):
                 rat = p / q
                 x = xf + rat
                 if ((x - a) < tol2) or ((b - x) < tol2):
@@ -327,7 +339,9 @@ def _minimize_scalar_bounded(
 
 
 @njit(cache=True)
-def _endpoint_from_coeffs(x_last: npt.NDArray[np.float64], c: npt.NDArray[np.float64]) -> float:
+def _endpoint_from_coeffs(
+    x_last: npt.NDArray[np.float64], c: npt.NDArray[np.float64]
+) -> float:
     s = 0.0
     for i in range(c.shape[0]):
         s += x_last[i] * c[i]
@@ -389,8 +403,12 @@ class _SplineGCVContext:
         self.w = np.ones(self.n, dtype=np.float64)
         self.x_dense = _banded_to_dense(self.x_banded, 2, 2)
         self.e_dense = _banded_to_dense(self.w_e_banded, 2, 2)
-        self.xtwx_banded = _compute_banded_symmetric_xt_wy(self.x_banded, self.w, self.x_banded)
-        self.xte_banded = _compute_banded_symmetric_xt_wy(self.x_banded, self.w, self.w_e_banded)
+        self.xtwx_banded = _compute_banded_symmetric_xt_wy(
+            self.x_banded, self.w, self.x_banded
+        )
+        self.xte_banded = _compute_banded_symmetric_xt_wy(
+            self.x_banded, self.w, self.w_e_banded
+        )
         self.x_dense_last = np.ascontiguousarray(self.x_dense[-1], dtype=np.float64)
 
 

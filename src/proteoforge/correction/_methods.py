@@ -95,9 +95,7 @@ def hommel(pvalues: npt.NDArray[np.float64], n_tests: int) -> npt.NDArray[np.flo
     return np.minimum(out_work[:m], 1.0)
 
 
-def hochberg(
-    pvalues: npt.NDArray[np.float64], n_tests: int
-) -> npt.NDArray[np.float64]:
+def hochberg(pvalues: npt.NDArray[np.float64], n_tests: int) -> npt.NDArray[np.float64]:
     """
     Apply Hochberg step-up adjustment (R ``p.adjust(..., "hochberg")``).
 

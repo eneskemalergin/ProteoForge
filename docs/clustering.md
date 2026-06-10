@@ -24,7 +24,9 @@ mapping.table
 mapping.n_differential_peptides
 ```
 
-Both functions take the same `PreparedDataset` and `DiscordanceResult` as [Discordance](discordance.md). The frozen `Config` on all three handoff objects must match.
+Both functions take the same `PreparedDataset` and `DiscordanceResult` as [Discordance](discordance.md). The frozen `Config` on `PreparedDataset`, `DiscordanceResult`, `ClusterResult`, and `ProteoformMappingResult` must match.
+
+Module 3 only sees proteins with at least one discordant peptide. The count of such proteins depends on `fdr`, `correction_within`, and `correction_global` from discordance (default `bonferroni` then `fdr_bh` at `fdr=0.001`). See [Multiple-testing correction](correction.md).
 
 Optional arguments for `run_cluster()`:
 
@@ -113,5 +115,6 @@ Peptides on proteins with no discordant members always receive `dpf_id = 0` and 
 ## Related pages
 
 - [Discordance](discordance.md): upstream `is_discordant` flags
+- [Multiple-testing correction](correction.md): how discordance flags are set
 - [PreparedDataset](prepared-dataset.md): `intensity_normalized` used for profiles
 - [Configuration](config.md): `linkage`, `cut`, cluster limits, hybrid threshold

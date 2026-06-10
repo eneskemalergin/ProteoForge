@@ -15,13 +15,13 @@ import numpy as np
 import numpy.typing as npt
 import polars as pl
 
-from proteoforge.correction import p_adjust, p_adjust_by_group
 from proteoforge._exceptions import (
     ProteoForgeParallelFallbackWarning,
     ProteoForgeValidationError,
 )
 from proteoforge._layout import ProteinBlock, build_protein_blocks
 from proteoforge._progress import WeightedProgress
+from proteoforge.correction import p_adjust, p_adjust_by_group
 from proteoforge.models import select_model
 from proteoforge.models._fit_status import count_statuses
 from proteoforge.models._protocol import build_design_stack

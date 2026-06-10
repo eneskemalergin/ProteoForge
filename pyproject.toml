@@ -152,6 +152,9 @@ module = [
     "proteoforge.clustering._cuts",
     "proteoforge.correction._methods",
     "proteoforge.correction.qvalue._gcv",
+    "proteoforge.correction.ihw._grenander",
+    "proteoforge.correction.ihw._lp",
+    "proteoforge.correction.ihw._splitting",
 ]
 disable_error_code = ["untyped-decorator", "no-any-return"]
 
@@ -172,6 +175,9 @@ omit = [
     "src/proteoforge/clustering/_cuts.py",
     "src/proteoforge/correction/_methods.py",
     "src/proteoforge/correction/qvalue/_gcv.py",
+    "src/proteoforge/correction/ihw/_grenander.py",
+    "src/proteoforge/correction/ihw/_lp.py",
+    "src/proteoforge/correction/ihw/_splitting.py",
 ]
 
 [tool.coverage.report]

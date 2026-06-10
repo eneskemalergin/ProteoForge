@@ -16,12 +16,15 @@ QVALUE_LAMBDAS = np.arange(0.05, 0.96, 0.05, dtype=np.float64)
 PI0_GCV_SPLINE_ASSET = "pi0_gcv_spline.npz"
 
 
-def load_pi0_gcv_spline_matrices() -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+def load_pi0_gcv_spline_matrices() -> tuple[
+    npt.NDArray[np.float64],
+    npt.NDArray[np.float64],
+]:
     """
     Load banded B-spline design (``X``) and penalty (``wE``) for the pi0 GCV spline.
 
     Matrices match ``scipy.interpolate.make_smoothing_spline`` on
-    :data:`QVALUE_LAMBDAS`. Regenerate with ``scripts/build_pi0_gcv_spline_constants.py``.
+    :data:`QVALUE_LAMBDAS`. Regenerate with ``scripts/build_pi0_gcv_spline_constants``.
     """
     ref = resources.files(__package__).joinpath(PI0_GCV_SPLINE_ASSET)
     with resources.as_file(ref) as path:
