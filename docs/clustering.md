@@ -1,6 +1,6 @@
 # Clustering (Module 3)
 
-Groups peptides by condition profile similarity on proteins where Module 2 found at least one discordant peptide. The default path uses Ward hierarchical clustering on Euclidean distances between median condition profiles, then a dendrogram cut. `assign_proteoforms()` maps clusters to differential proteoform IDs (dPF).
+Groups peptides by condition profile similarity on every protein in the prepared scope. The default path uses Ward hierarchical clustering on Euclidean distances between median condition profiles, then a dendrogram cut. `assign_proteoforms()` maps clusters to differential proteoform IDs (dPF).
 
 ## Entry point
 
@@ -26,7 +26,7 @@ mapping.n_differential_peptides
 
 Both functions take the same `PreparedDataset` and `DiscordanceResult` as [Discordance](discordance.md). The frozen `Config` on `PreparedDataset`, `DiscordanceResult`, `ClusterResult`, and `ProteoformMappingResult` must match.
 
-Module 3 only sees proteins with at least one discordant peptide. The count of such proteins depends on `fdr`, `correction_within`, and `correction_global` from discordance (default `bonferroni` then `fdr_bh` at `fdr=0.001`). See [Multiple-testing correction](correction.md).
+Module 3 clusters every protein in the prepared scope. Discordance flags still control which clusters receive differential dPF IDs (`dPF_1+`, `dPF_-1`); canonical proteins and clusters without discordant members receive `dpf_id = 0`. The discordant count depends on `fdr`, `correction_within`, and `correction_global` from discordance (default `bonferroni` then `fdr_bh` at `fdr=0.001`). See [Multiple-testing correction](correction.md).
 
 Optional arguments for `run_cluster()`:
 
@@ -35,18 +35,18 @@ Optional arguments for `run_cluster()`:
 
 ## Scope
 
-Clustering runs on proteins with at least one discordant peptide. For each such protein, **all peptides on that protein** enter the profile matrix and linkage, not discordant-only subsets. Non-discordant peptides that co-move with a discordant sibling can land in the same cluster.
+Clustering runs on **every protein** in the prepared scope. For each protein, **all peptides on that protein** enter the profile matrix and linkage. Non-discordant peptides that co-move with a discordant sibling can land in the same cluster and inherit a positive dPF.
 
-Proteins with no discordant peptides are skipped. Their peptides are absent from `ClusterResult.table` and receive `dpf_id = 0` after assignment.
+Proteins with no discordant peptides still receive cluster labels (often a single cluster). They receive `dpf_id = 0` after assignment.
 
-Degenerate cases on a discordant protein:
+Degenerate cases on any protein:
 
 - **One peptide:** `cluster_id = 1` without linkage
 - **Fewer than `cluster_min_peptides` peptides:** single cluster without linkage (default `cluster_min_peptides` is `2`)
 
 ## Method
 
-Per discordant protein:
+Per protein:
 
 1. **Profiles:** median `intensity_normalized` per `(peptide_id, condition)`; matrix shape `(n_peptides, n_conditions)` with columns in `condition_levels` order
 2. **Distance:** condensed Euclidean distances between peptide rows
@@ -77,7 +77,7 @@ Clustering parallelizes at protein grain when `n_jobs > 1`, using the same spawn
 - `cluster_id`: 1-based per protein after the cut
 - `cut_method`, `linkage_method`: snapshots from the run
 
-`clusters.metadata` includes `n_discordant_proteins`, `n_clustered_peptides`, parallelism fields, and the `linkage` / `cut` values used.
+`clusters.metadata` includes `n_proteins`, `n_discordant_proteins`, `n_clustered_peptides`, parallelism fields, and the `linkage` / `cut` values used.
 
 **Join on keys, not row index** (same rule as discordance):
 
@@ -97,7 +97,7 @@ joined = dataset.peptides.join(
 
 - `protein_id`, `peptide_id`
 - `is_discordant`
-- `cluster_id`: null for peptides on proteins without discordance
+- `cluster_id`: 1-based cluster label from Module 3 (always set when clustering ran on the full prepared scope)
 - `dpf_id`: differential proteoform ID
 
 Assignment is cluster-first: every peptide in a cluster inherits that cluster's dPF.
@@ -108,7 +108,7 @@ Assignment is cluster-first: every peptide in a cluster inherits that cluster's 
 | One peptide, discordant | `-1` (`dPF_-1`, singleton differential) |
 | Two or more peptides, at least one discordant | `1`, `2`, … (`dPF_1`, …; numbered per protein among qualifying clusters, ordered by `cluster_id`) |
 
-Peptides on proteins with no discordant members always receive `dpf_id = 0` and `cluster_id = null`.
+Peptides on proteins with no discordant members receive `dpf_id = 0` and a cluster label from linkage (often `cluster_id = 1` when the protein has only one cluster).
 
 `mapping.metadata` reports counts by dPF class (`n_singleton_peptides`, `n_differential_peptides`, `dpf_counts`, and related fields).
 

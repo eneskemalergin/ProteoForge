@@ -95,7 +95,7 @@ Common keys on `result.metadata`:
 
 ## Downstream
 
-`run_cluster()` uses `is_discordant` to choose proteins for linkage. Stricter correction (for example `bonferroni` within and low `fdr`) reduces the discordant set and therefore Module 3 scope. See [Clustering](clustering.md).
+`run_cluster()` clusters every protein in the prepared scope. `is_discordant` controls which clusters receive differential dPF IDs during assignment, not which proteins enter linkage. Stricter correction (for example `bonferroni` within and low `fdr`) reduces the discordant peptide count. See [Clustering](clustering.md).
 
 ## Related pages
 

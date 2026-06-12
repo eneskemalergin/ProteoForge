@@ -29,6 +29,7 @@ from proteoforge.clustering._profiles import build_profile_blocks
 from proteoforge.schema import (
     CLUSTER_ID,
     CUT_METHOD,
+    IS_DISCORDANT,
     LINKAGE_METHOD,
     PEPTIDE_ID,
     PROTEIN_ID,
@@ -49,7 +50,7 @@ def run_cluster(
     n_jobs: int | None = None,
 ) -> ClusterResult:
     """
-    Cluster peptide condition profiles on proteins with discordant members.
+    Cluster peptide condition profiles for every protein in the prepared scope.
 
     Parameters
     ----------
@@ -65,8 +66,7 @@ def run_cluster(
     Returns
     -------
     ClusterResult
-        Per-peptide cluster labels for proteins with at least one discordant
-        peptide.
+        Per-peptide cluster labels for all proteins in the prepared scope.
 
     Raises
     ------
@@ -88,6 +88,7 @@ def run_cluster(
             metadata={
                 "linkage": config.linkage,
                 "cut": config.cut,
+                "n_proteins": 0,
                 "n_discordant_proteins": 0,
                 "n_clustered_peptides": 0,
                 **_cluster_metadata(jobs_requested, effective=1),
@@ -102,10 +103,14 @@ def run_cluster(
         n_jobs=jobs_requested,
     )
     table = pl.DataFrame(rows).sort([PROTEIN_ID, PEPTIDE_ID])
+    n_discordant_proteins = int(
+        discordance.table.filter(pl.col(IS_DISCORDANT)).select(PROTEIN_ID).n_unique()
+    )
     metadata: dict[str, object] = {
         "linkage": config.linkage,
         "cut": config.cut,
-        "n_discordant_proteins": len(blocks),
+        "n_proteins": len(blocks),
+        "n_discordant_proteins": n_discordant_proteins,
         "n_clustered_peptides": table.height,
         **run_meta,
     }

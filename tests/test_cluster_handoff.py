@@ -99,23 +99,26 @@ def _discordance(config: Config) -> DiscordanceResult:
     )
 
 
-def test_build_profile_blocks_clusters_all_peptides_on_discordant_proteins() -> None:
+def test_build_profile_blocks_includes_every_protein_in_scope() -> None:
     config = _config()
     prepared = _prepared(config)
     discordance = _discordance(config)
 
     blocks = build_profile_blocks(prepared, discordance)
 
-    assert [block.protein_id for block in blocks] == ["P1"]
+    assert [block.protein_id for block in blocks] == ["P1", "P2"]
     assert blocks[0].peptide_ids == ("A", "B", "C", "D", "E")
     np.testing.assert_array_equal(
         blocks[0].is_discordant,
         [True, False, True, True, False],
     )
     assert blocks[0].profiles.shape == (5, 2)
+    assert blocks[1].peptide_ids == ("A", "B")
+    np.testing.assert_array_equal(blocks[1].is_discordant, [False, False])
+    assert blocks[1].profiles.shape == (2, 2)
 
 
-def test_run_cluster_returns_rows_for_discordant_proteins_only() -> None:
+def test_run_cluster_returns_rows_for_all_proteins_in_scope() -> None:
     config = _config(cut="fixed_height")
     prepared = _prepared(config)
     discordance = _discordance(config)
@@ -129,10 +132,11 @@ def test_run_cluster_returns_rows_for_discordant_proteins_only() -> None:
         CUT_METHOD,
         LINKAGE_METHOD,
     ]
-    assert result.table.height == 5
-    assert set(result.table.get_column(PROTEIN_ID).to_list()) == {"P1"}
+    assert result.table.height == prepared.n_peptides
+    assert set(result.table.get_column(PROTEIN_ID).to_list()) == {"P1", "P2"}
+    assert result.metadata["n_proteins"] == 2
     assert result.metadata["n_discordant_proteins"] == 1
-    assert result.n_clustered_peptides == 5
+    assert result.n_clustered_peptides == 7
 
 
 def test_assign_proteoforms_applies_cluster_level_rule() -> None:

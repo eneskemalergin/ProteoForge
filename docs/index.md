@@ -78,7 +78,7 @@ Stage map (entry point, primary output):
 - **Ingest:** `read_peptides()`, `read_provenance()`, `read_fasta()`; harmonization and UniProt-style group resolution before `prepare()` ([Input and output](io.md))
 - **Normalize:** `prepare()` / `prepare_from_parquet()` to `PreparedDataset` with `intensity_normalized` on each row
 - **Discordance:** `run_discordance()` to `DiscordanceResult.table` with `raw_p_value`, `within_p_value`, `adjusted_p_value`, `is_discordant`. Correction via `p_adjust_by_group` then `p_adjust` ([Multiple-testing correction](correction.md))
-- **Cluster:** `run_cluster()` to `ClusterResult.table` with `cluster_id` on discordant proteins
+- **Cluster:** `run_cluster()` to `ClusterResult.table` with `cluster_id` on every protein in scope
 - **dPF assign:** `assign_proteoforms()` to `ProteoformMappingResult.table` with `dpf_id` (`dPF_0`, `dPF_1+`, `dPF_-1`)
 - **Planned:** `discover()` to `ProteoformResults` (mapping, summary, exports in one object)
 

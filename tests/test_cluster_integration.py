@@ -70,8 +70,9 @@ def test_prepare_discordance_cluster_proteoform_pipeline() -> None:
     assert set(cluster.table.columns) == CLUSTER_RESULT_COLUMNS
     assert set(mapping.table.columns) == PROTEOFORM_MAPPING_COLUMNS
     assert mapping.table.height == prepared.n_peptides
-    assert cluster.table.height > 0
+    assert cluster.table.height == prepared.n_peptides
     assert cluster.table.get_column(PROTEIN_ID).n_unique() >= 1
+    assert mapping.table.get_column(CLUSTER_ID).null_count() == 0
 
     discordant = mapping.table.filter(pl.col(IS_DISCORDANT))
     assert discordant.height >= 1
@@ -86,7 +87,7 @@ def test_prepare_discordance_cluster_proteoform_pipeline() -> None:
     )
     for protein_id in proteins_without_discordance:
         subset = mapping.table.filter(pl.col(PROTEIN_ID) == protein_id)
-        assert subset.get_column(CLUSTER_ID).null_count() == subset.height
+        assert subset.get_column(CLUSTER_ID).null_count() == 0
         assert subset.get_column(DPF_ID).unique().to_list() == [0]
 
 
@@ -123,6 +124,6 @@ def test_pipeline_with_no_discordant_peptides() -> None:
     cluster = run_cluster(prepared, discordance, n_jobs=1)
     mapping = assign_proteoforms(prepared, discordance, cluster)
 
-    assert cluster.table.is_empty()
+    assert cluster.table.height == prepared.n_peptides
     assert mapping.table.get_column(DPF_ID).unique().to_list() == [0]
-    assert mapping.table.get_column(CLUSTER_ID).null_count() == mapping.table.height
+    assert mapping.table.get_column(CLUSTER_ID).null_count() == 0

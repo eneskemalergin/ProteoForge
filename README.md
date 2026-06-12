@@ -121,7 +121,7 @@ pip install -e ".[plots,docs]"
 
 ### Available now
 
-Load a long-format peptide parquet, validate, normalize, run discordance, cluster discordant proteins, and assign dPF IDs. Experimental design and sample scope live in the config YAML.
+Load a long-format peptide parquet, validate, normalize, run discordance, cluster all proteins in scope, and assign dPF IDs. Experimental design and sample scope live in the config YAML.
 
 ```python
 from proteoforge import (

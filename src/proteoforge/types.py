@@ -219,16 +219,15 @@ class DiscordanceResult:
 @dataclass(frozen=True)
 class ClusterResult:
     """
-    Per-peptide clustering outcome for proteins with discordant members.
+    Per-peptide clustering outcome for the full prepared scope.
 
     Attributes
     ----------
     config
         Frozen configuration used for the run.
     table
-        One row per clustered ``(protein_id, peptide_id)`` with ``cluster_id``,
-        ``cut_method``, and ``linkage_method``. Proteins without discordance
-        are omitted; those peptides receive ``dPF_0`` during assignment.
+        One row per ``(protein_id, peptide_id)`` in the prepared scope with
+        ``cluster_id``, ``cut_method``, and ``linkage_method``.
     metadata
         Run statistics and parallel execution fields.
     """

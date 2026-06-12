@@ -27,7 +27,7 @@ def build_profile_blocks(
     discordance: DiscordanceResult,
 ) -> list[ProteinProfileBlock]:
     """
-    Build condition profiles for all peptides on discordant proteins.
+    Build condition profiles for every protein in the prepared scope.
 
     Parameters
     ----------
@@ -42,22 +42,10 @@ def build_profile_blocks(
         Blocks sorted by protein ID.
     """
     _validate_handoff(prepared, discordance)
-    discordant_proteins = (
-        discordance.table.filter(pl.col(IS_DISCORDANT))
-        .get_column(PROTEIN_ID)
-        .unique()
-        .sort()
-        .to_list()
-    )
-    if not discordant_proteins:
-        return []
-
     flags = discordance.table.select([PROTEIN_ID, PEPTIDE_ID, IS_DISCORDANT])
-    work = (
-        prepared.peptides.join(flags, on=[PROTEIN_ID, PEPTIDE_ID], how="left")
-        .with_columns(pl.col(IS_DISCORDANT).fill_null(False))
-        .filter(pl.col(PROTEIN_ID).is_in(discordant_proteins))
-    )
+    work = prepared.peptides.join(
+        flags, on=[PROTEIN_ID, PEPTIDE_ID], how="left"
+    ).with_columns(pl.col(IS_DISCORDANT).fill_null(False))
     grouped = (
         work.group_by([PROTEIN_ID, PEPTIDE_ID, CONDITION])
         .agg(pl.col(NORMALIZED_INTENSITY).median().alias(NORMALIZED_INTENSITY))

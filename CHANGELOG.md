@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
+Clustering runs on every protein in the prepared scope.
+
+### Changed
+
+- `run_cluster()` clusters all proteins in scope, not only those with discordant peptides. `ClusterResult.table` and `ProteoformMappingResult.table` now include `cluster_id` on every peptide; canonical proteins still receive `dpf_id = 0`.
+- `ClusterResult.metadata`: `n_proteins` added; `n_discordant_proteins` counts discordant proteins only.
+- Clustering docs updated for full-scope behavior (`docs/clustering.md`, `docs/discordance.md`, `docs/index.md`, README).
+
+## [0.0.4] - 2026-06-10
+
 Correction subpackage (q-value, Hommel) and multiple-testing user documentation.
 
 ### Added
