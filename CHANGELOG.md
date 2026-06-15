@@ -7,6 +7,10 @@ All notable changes to this project are documented in this file. The format is b
 
 Clustering runs on every protein in the prepared scope.
 
+### Added
+
+- `proteoforge.intel.parser.fasta`: UniProt FASTA to Polars table (header parse, sequence validation, molecular weight, skip accounting via `FastaParseResult`)
+
 ### Changed
 
 - `run_cluster()` clusters all proteins in scope, not only those with discordant peptides. `ClusterResult.table` and `ProteoformMappingResult.table` now include `cluster_id` on every peptide; canonical proteins still receive `dpf_id = 0`.

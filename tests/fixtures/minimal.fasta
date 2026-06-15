@@ -1,4 +1,4 @@
->sp|P11111|TEST1
+>sp|P11111|AAA1_HUMAN Short test protein 1 OS=Homo sapiens OX=9606 GN=AAA1 PE=1 SV=1
 ACDEFGHIK
->sp|P22222|TEST2
+>sp|P22222|BBB2_HUMAN Short test protein 2 OS=Homo sapiens OX=9606 GN=BBB2 PE=1 SV=1
 LMNPQRSTV

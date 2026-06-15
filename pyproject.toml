@@ -32,6 +32,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+intel = ["duckdb>=1.3", "pyarrow>=18.0"]
 plots = ["matplotlib>=3.10"]
 interactive = ["plotly>=6.0", "ipywidgets>=8.1"]
 cli = ["rich>=14.0", "typer>=0.15"]
@@ -157,9 +158,12 @@ module = [
 disable_error_code = ["untyped-decorator", "no-any-return"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["src"]
+testpaths = ["tests", "tmp/proteoform_scenarios", "tmp/db-design/tests"]
+pythonpath = ["src", "tmp/proteoform_scenarios", "tmp/db-design"]
 addopts = ["--strict-markers", "--strict-config"]
+markers = [
+    "simulation: proteoform scenario simulation (tmp/proteoform_scenarios)",
+]
 
 [tool.coverage.run]
 branch = true
