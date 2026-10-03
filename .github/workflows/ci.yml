@@ -103,23 +103,34 @@ jobs:
           retention-days: 14
 
   test:
-    name: Test (${{ matrix.label }}, Py3.12)
+    name: Test (${{ matrix.label }}, Py${{ matrix.python }})
     needs: quality
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
+    env:
+      UV_PYTHON: ${{ matrix.python }}
     strategy:
       fail-fast: false
       matrix:
         include:
+          # Python 3.12 is the canonical version and runs on every platform.
           - label: Linux arm64
             os: ubuntu-24.04-arm
             architecture: arm64
+            python: "3.12"
           - label: macOS arm64
             os: macos-15
             architecture: arm64
-          - label: Windows x64
-            os: windows-2025
+            python: "3.12"
+          # Newer Python versions run on Linux x64 only.
+          - label: Linux x64
+            os: ubuntu-24.04
             architecture: x86_64
+            python: "3.13"
+          - label: Linux x64
+            os: ubuntu-24.04
+            architecture: x86_64
+            python: "3.14"
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -130,7 +141,7 @@ jobs:
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           enable-cache: true
-          cache-suffix: test-${{ matrix.os }}
+          cache-suffix: test-${{ matrix.os }}-py${{ matrix.python }}
 
       - name: Install dependencies
         run: uv sync --locked

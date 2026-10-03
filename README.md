@@ -71,7 +71,7 @@ Supporting functions:
 
 ## Installation
 
-ProteoForge needs Python 3.12 or newer. Runtime dependencies: NumPy 2.2+, Polars 1.26+, Numba 0.61.2+, PyYAML, and tqdm. CI tests Python 3.12 on Linux, macOS, and Windows.
+ProteoForge needs Python 3.12 or newer. Runtime dependencies: NumPy 2.2+, Polars 1.26+, Numba 0.61.2+, PyYAML, and tqdm. CI tests Python 3.12 on Linux (x64, arm64) and macOS (arm64), and Python 3.13 and 3.14 on Linux x64. Windows is not tested.
 
 PyPI releases start with v0.1.0. Until then, install from GitHub:
 
