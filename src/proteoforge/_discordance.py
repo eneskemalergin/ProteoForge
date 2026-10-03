@@ -8,6 +8,7 @@ import sys
 import warnings
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from concurrent.futures.process import BrokenProcessPool
+from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -37,6 +38,8 @@ from proteoforge.schema import (
 from proteoforge.types import DiscordanceResult
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from proteoforge.models._protocol import DiscordanceModel
     from proteoforge.types import PreparedDataset
 
@@ -44,19 +47,37 @@ _BATCHING_STRATEGIES: frozenset[str] = frozenset({"scalar", "protein", "shape"})
 
 _FitGroupKey = tuple[int, int, int, bool]
 _PROCESS_POOL_CTX = mp.get_context("spawn")
-_BLAS_THREAD_VARS = (
+_NATIVE_THREAD_VARS = (
     "OMP_NUM_THREADS",
     "OPENBLAS_NUM_THREADS",
     "MKL_NUM_THREADS",
     "NUMEXPR_NUM_THREADS",
     "VECLIB_MAXIMUM_THREADS",
+    "NUMBA_NUM_THREADS",
+    "POLARS_MAX_THREADS",
 )
 
 
-def _pool_worker_init() -> None:
-    """Pin BLAS/OpenMP to one thread per worker (spawn starts a clean interpreter)."""
-    for var in _BLAS_THREAD_VARS:
-        os.environ[var] = "1"
+@contextmanager
+def _single_threaded_worker_env() -> Iterator[None]:
+    """
+    Give worker processes started inside this block one native thread each.
+
+    Spawned workers inherit the parent environment, and BLAS, OpenMP, numba,
+    and Polars read these variables once, when they load. A worker initializer
+    is too late: unpickling it already imports NumPy. The parent environment is
+    restored on exit.
+    """
+    saved = {name: os.environ.get(name) for name in _NATIVE_THREAD_VARS}
+    os.environ.update(dict.fromkeys(_NATIVE_THREAD_VARS, "1"))
+    try:
+        yield
+    finally:
+        for name, value in saved.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
 
 
 def _spawn_main_usable() -> bool:
@@ -274,16 +295,28 @@ def _serial_fit_metadata(
     }
 
 
+def _available_cpus() -> int:
+    """Return how many CPUs this process may run on, respecting CPU affinity."""
+    process_cpu_count = getattr(os, "process_cpu_count", None)
+    if process_cpu_count is not None:
+        count = process_cpu_count()
+    elif hasattr(os, "sched_getaffinity"):
+        count = len(os.sched_getaffinity(0))
+    else:
+        count = os.cpu_count()
+    return int(count or 1)
+
+
 def _resolve_n_jobs(n_jobs: int) -> int:
     """
     Map config ``n_jobs`` to a process-pool worker count.
 
-    ``-1`` caps workers at 8 and uses half the reported CPUs so pool processes
-    do not oversubscribe BLAS threads (empirically best on 32-core hosts).
+    ``-1`` uses half the CPUs this process may run on (respecting affinity masks
+    such as ``taskset`` or a SLURM allocation), capped at 8. Discordance fitting
+    is limited by memory bandwidth, so more workers add little.
     """
     if n_jobs == -1:
-        cpus = os.cpu_count() or 1
-        return max(1, min(8, cpus // 2))
+        return max(1, min(8, _available_cpus() // 2))
     return max(1, n_jobs)
 
 
@@ -405,33 +438,33 @@ def _fit_shape_parallel(
     task_peptides = [
         _peptide_count_shape_group(blocks, indices) for _key, indices in group_items
     ]
-    executor = ProcessPoolExecutor(
-        max_workers=workers,
-        mp_context=_PROCESS_POOL_CTX,
-        initializer=_pool_worker_init,
-    )
-    try:
-        future_to_idx = {
-            executor.submit(_fit_shape_group_task, task): idx
-            for idx, task in enumerate(tasks)
-        }
-        results: list[
-            list[tuple[int, npt.NDArray[np.float64], npt.NDArray[np.object_]]]
-        ] = [[] for _ in tasks]
-        with WeightedProgress(
-            enabled=show_progress,
-            total=n_peptides,
-            desc="Fitting (by shape)",
-        ) as progress:
-            for future in as_completed(future_to_idx):
-                idx = future_to_idx[future]
-                results[idx] = future.result()
-                progress.update(task_peptides[idx])
-    except BaseException:
-        executor.shutdown(wait=False, cancel_futures=True)
-        raise
-    else:
-        executor.shutdown(wait=True)
+    with _single_threaded_worker_env():
+        executor = ProcessPoolExecutor(
+            max_workers=workers,
+            mp_context=_PROCESS_POOL_CTX,
+        )
+        try:
+            future_to_idx = {
+                executor.submit(_fit_shape_group_task, task): idx
+                for idx, task in enumerate(tasks)
+            }
+            results: list[
+                list[tuple[int, npt.NDArray[np.float64], npt.NDArray[np.object_]]]
+            ] = [[] for _ in tasks]
+            with WeightedProgress(
+                enabled=show_progress,
+                total=n_peptides,
+                desc="Fitting (by shape)",
+            ) as progress:
+                for future in as_completed(future_to_idx):
+                    idx = future_to_idx[future]
+                    results[idx] = future.result()
+                    progress.update(task_peptides[idx])
+        except BaseException:
+            executor.shutdown(wait=False, cancel_futures=True)
+            raise
+        else:
+            executor.shutdown(wait=True)
     _apply_shape_group_results(raw, status, results)
     return raw, status
 

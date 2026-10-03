@@ -20,10 +20,18 @@ Clustering runs on every protein in the prepared scope; repository reorganized a
 - `ClusterResult.metadata`: `n_proteins` added; `n_discordant_proteins` counts discordant proteins only.
 - Clustering docs updated for full-scope behavior (`docs/clustering.md`, `docs/discordance.md`, `docs/index.md`, README).
 - Minimum numba is 0.61.2 (0.61.0 does not support NumPy 2.2). All runtime floors are tested in CI.
+- `run_discordance()` with the default RLM model is 33% to 54% faster: the Huber scale update runs in a numba kernel and the weighted least-squares step makes one pass fewer over the design. Discordance calls are unchanged; p-values match the previous implementation to within the IRLS convergence tolerance.
+- `run_cluster()` clusters proteins in-process. A process pool was slower than serial clustering on every tested dataset.
+- `n_jobs=-1` counts only the CPUs the process may use (for example under `taskset` or a SLURM allocation) before taking half, capped at 8.
 - The q-value test compares against a SciPy smoothing-spline oracle instead of skipping.
+
+### Fixed
+
+- Discordance worker processes now start with one BLAS, OpenMP, numba, and Polars thread each. The limit was previously set inside the workers after NumPy had loaded, so each worker could start one BLAS thread per CPU.
 
 ### Removed
 
+- The `n_jobs` argument of `run_cluster()` and the clustering `n_jobs_*` and `parallel_fallback*` metadata fields.
 - MkDocs site, `docs/` pages, and the `docs` extra. The user guide is being rewritten.
 - Placeholder extras `intel`, `plots`, `interactive`, `cli`, and `ref`; they installed packages that ProteoForge does not import yet.
 - Python 3.15 classifier; issue and pull request templates; the deferred CodSpeed workflow.

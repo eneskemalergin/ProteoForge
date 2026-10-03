@@ -13,6 +13,7 @@ from proteoforge.models._fit_status import (
     FIT_STATUS_ZERO_ROBUST_SCALE,
     empty_status,
 )
+from proteoforge.models._huber import huber_scale_rows
 from proteoforge.models._wls import _solve_normal_batch
 
 HUBER_T: float = 1.345
@@ -179,7 +180,6 @@ def _huber_scale_batch(
     max_iter: int = _HUBER_SCALE_MAX_ITER,
 ) -> npt.NDArray[np.float64]:
     """Huber proposal-2 scale for each row of residuals."""
-    m = residual.shape[0]
     d = _HUBER_SCALE_D
     h = (
         df_resid
@@ -192,27 +192,16 @@ def _huber_scale_batch(
         )
     )
     s = _mad_batch(residual)
-    still = (h > 0.0) & (s > 0.0)
-    if not np.any(still):
-        return np.zeros(m, dtype=np.float64)
-
-    curr = np.zeros(m, dtype=np.float64)
-    curr[still] = s[still]
-    for _niter in range(1, max_iter):
-        idx = np.flatnonzero(still)
-        if idx.size == 0:
-            break
-        r = residual[idx]
-        c = curr[idx]
-        ha = h[idx]
-        inside = np.abs(r / c[:, None]) < d
-        chi = np.where(inside, (r / c[:, None]) ** 2 / 2.0, d**2 / 2.0)
-        nscale = np.sqrt(np.sum(chi, axis=1) / (nobs * ha) * c**2)
-        converged = np.abs(nscale - c) <= tol
-        curr[idx] = nscale
-        still[idx[converged]] = False
-
-    return curr
+    scale = huber_scale_rows(
+        np.ascontiguousarray(residual, dtype=np.float64),
+        np.ascontiguousarray(s, dtype=np.float64),
+        np.ascontiguousarray(h, dtype=np.float64),
+        float(nobs),
+        d,
+        tol,
+        max_iter,
+    )
+    return np.asarray(scale, dtype=np.float64)
 
 
 def _matrix_rank_batch(design: npt.NDArray[np.float64]) -> npt.NDArray[np.intp]:
@@ -277,8 +266,9 @@ def _wls_step_batch(
     sqrt_w = np.sqrt(weights)
     wexog = design * sqrt_w[:, :, None]
     wendog = y * sqrt_w
-    normal = np.matmul(wexog.transpose(0, 2, 1), wexog)
-    rhs = np.einsum("mnp,mn->mp", wexog, wendog)
+    wexog_t = wexog.transpose(0, 2, 1)
+    normal = np.matmul(wexog_t, wexog)
+    rhs = np.matmul(wexog_t, wendog[:, :, None])[:, :, 0]
     beta, usable = _solve_normal_batch(normal, rhs)
     need_pinv = ~usable
     if np.any(need_pinv):
@@ -288,9 +278,10 @@ def _wls_step_batch(
             wendog[pinv_rows],
         )
 
-    fitted = np.einsum("mnp,mp->mn", design, beta)
-    resid = y - fitted
-    wresid = wendog - np.einsum("mnp,mp->mn", wexog, beta)
+    resid = y - np.matmul(design, beta[:, :, None])[:, :, 0]
+    # sqrt(w) * (y - X b) equals the weighted residual without a second pass
+    # over the weighted design.
+    wresid = resid * sqrt_w
     denom = max(n_obs - n_params, 1)
     wls_scale = np.einsum("mn,mn->m", wresid, wresid) / denom
     return beta, resid, wls_scale

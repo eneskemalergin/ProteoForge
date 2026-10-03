@@ -64,7 +64,7 @@ def test_prepare_discordance_cluster_proteoform_pipeline() -> None:
     )
     prepared = prepare(_discordant_frame(), config)
     discordance = run_discordance(prepared, n_jobs=1)
-    cluster = run_cluster(prepared, discordance, n_jobs=1)
+    cluster = run_cluster(prepared, discordance)
     mapping = assign_proteoforms(prepared, discordance, cluster)
 
     assert set(cluster.table.columns) == CLUSTER_RESULT_COLUMNS
@@ -121,7 +121,7 @@ def test_pipeline_with_no_discordant_peptides() -> None:
     discordance = run_discordance(prepared, n_jobs=1)
     assert int(discordance.table.select(pl.col(IS_DISCORDANT).sum()).item()) == 0
 
-    cluster = run_cluster(prepared, discordance, n_jobs=1)
+    cluster = run_cluster(prepared, discordance)
     mapping = assign_proteoforms(prepared, discordance, cluster)
 
     assert cluster.table.height == prepared.n_peptides

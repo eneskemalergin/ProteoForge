@@ -123,7 +123,7 @@ def test_run_cluster_returns_rows_for_all_proteins_in_scope() -> None:
     prepared = _prepared(config)
     discordance = _discordance(config)
 
-    result = run_cluster(prepared, discordance, n_jobs=1)
+    result = run_cluster(prepared, discordance)
 
     assert result.table.columns == [
         PROTEIN_ID,

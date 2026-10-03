@@ -41,6 +41,7 @@ dev = [
     "ruff>=0.11",
     "scipy>=1.15",
     "statsmodels>=0.14",
+    "threadpoolctl>=3.5",
     "types-PyYAML>=6.0.12",
     "types-tqdm>=4.67",
 ]
@@ -135,6 +136,7 @@ module = [
     "proteoforge.correction._hommel",
     "proteoforge.correction.qvalue._gcv",
     "proteoforge.intel.parser.fasta",
+    "proteoforge.models._huber",
 ]
 disable_error_code = ["untyped-decorator", "no-any-return"]
 
@@ -156,6 +158,7 @@ omit = [
     "src/proteoforge/correction/_methods.py",
     "src/proteoforge/correction/_hommel.py",
     "src/proteoforge/correction/qvalue/_gcv.py",
+    "src/proteoforge/models/_huber.py",
 ]
 
 [tool.coverage.report]
