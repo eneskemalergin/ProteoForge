@@ -11,6 +11,7 @@ Clustering runs on every protein in the prepared scope; repository reorganized a
 
 - `proteoforge.intel.parser.fasta`: UniProt FASTA to Polars table (header parse, sequence validation, molecular weight, skip accounting via `FastaParseResult`)
 - `CITATION.cff` and a README citation for the article in the *Journal of Proteome Research* (2026, doi:10.1021/acs.jproteome.5c01235)
+- README rewritten and fact-checked against the code: light and dark header (outlined Inter wordmark), the four method stages from the article, what "imputation-aware" means for RLM and WLS, verified install and quick-start steps, and links to the analysis repository and its Zenodo snapshot
 - CI on Linux (x64, arm64), macOS (arm64), and Windows (x64) with Python 3.12, plus coverage, dependency-floor, packaging, and runtime-audit jobs; runs on `main` and `dev`
 
 ### Changed
