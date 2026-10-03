@@ -159,12 +159,9 @@ module = [
 disable_error_code = ["untyped-decorator", "no-any-return"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "tmp/proteoform_scenarios", "tmp/db-design/tests"]
-pythonpath = ["src", "tmp/proteoform_scenarios", "tmp/db-design"]
+testpaths = ["tests"]
+pythonpath = ["src"]
 addopts = ["--strict-markers", "--strict-config"]
-markers = [
-    "simulation: proteoform scenario simulation (tmp/proteoform_scenarios)",
-]
 
 [tool.coverage.run]
 branch = true
