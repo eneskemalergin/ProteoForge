@@ -127,3 +127,49 @@ def test_pipeline_with_no_discordant_peptides() -> None:
     assert cluster.table.height == prepared.n_peptides
     assert mapping.table.get_column(DPF_ID).unique().to_list() == [0]
     assert mapping.table.get_column(CLUSTER_ID).null_count() == 0
+
+
+def test_pipeline_output_is_identical_across_runs_and_workers() -> None:
+    rng = np.random.default_rng(11)
+    rows: list[dict[str, object]] = []
+    # Different peptide counts give several shape groups, so n_jobs=2 really
+    # uses the process pool.
+    for protein, n_peptides in (("P1", 4), ("P2", 5), ("P3", 6)):
+        for i in range(n_peptides):
+            for sample, condition in SAMPLES.items():
+                value = 10.0 + i + rng.normal(scale=0.1)
+                if protein == "P2" and i < 2 and condition == "treated":
+                    value += 3.0
+                rows.append(
+                    {
+                        "protein_id": protein,
+                        "peptide_id": f"PEP{i}",
+                        "sample_id": sample,
+                        "intensity": value,
+                    }
+                )
+    frame = pl.DataFrame(rows)
+    config = Config(
+        control_condition="control",
+        conditions=CONDITIONS,
+        input_is_log2=True,
+        fdr=0.05,
+    )
+
+    def run(n_jobs: int) -> tuple[pl.DataFrame, pl.DataFrame, object]:
+        prepared = prepare(frame, config)
+        discordance = run_discordance(prepared, n_jobs=n_jobs)
+        clusters = run_cluster(prepared, discordance)
+        mapping = assign_proteoforms(prepared, discordance, clusters)
+        return (
+            discordance.table,
+            mapping.table,
+            discordance.metadata["n_jobs_effective"],
+        )
+
+    first = run(1)
+    again, parallel = run(1), run(2)
+    assert parallel[2] == 2
+    for other in (again, parallel):
+        assert other[0].equals(first[0])
+        assert other[1].equals(first[1])
