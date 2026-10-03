@@ -1417,7 +1417,7 @@ name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ptyprocess", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "ptyprocess" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [
@@ -1657,7 +1657,7 @@ requires-dist = [
     { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.6" },
     { name = "mkdocstrings", marker = "extra == 'docs'", specifier = ">=0.29" },
     { name = "mkdocstrings-python", marker = "extra == 'docs'", specifier = ">=1.16" },
-    { name = "numba", specifier = ">=0.61" },
+    { name = "numba", specifier = ">=0.61.2" },
     { name = "numpy", specifier = ">=2.2" },
     { name = "pandas", marker = "extra == 'ref'", specifier = ">=2.2" },
     { name = "plotly", marker = "extra == 'interactive'", specifier = ">=6.0" },

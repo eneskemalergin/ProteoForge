@@ -19,12 +19,11 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
-    "Programming Language :: Python :: 3.15",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Typing :: Typed",
 ]
 dependencies = [
-    "numba>=0.61",
+    "numba>=0.61.2",
     "numpy>=2.2",
     "polars>=1.26",
     "pyyaml>=6.0.2",
