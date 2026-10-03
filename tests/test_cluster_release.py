@@ -161,7 +161,7 @@ def test_run_cluster_single_peptide_assigns_one_cluster() -> None:
         ),
         metadata={},
     )
-    cluster = run_cluster(prepared, discordance, n_jobs=1)
+    cluster = run_cluster(prepared, discordance)
     assert cluster.table.get_column(CLUSTER_ID).to_list() == [1]
 
 
@@ -207,7 +207,7 @@ def test_euclidean_and_ward_match_scipy_oracles() -> None:
     np.testing.assert_allclose(linkage_ours, linkage_oracle, rtol=1e-10, atol=1e-10)
 
 
-def test_run_cluster_parallel_path() -> None:
+def test_run_cluster_runs_in_process_without_pool_metadata() -> None:
     config = _config()
     rows: list[dict[str, object]] = []
     for protein in ("P1", "P2"):
@@ -255,9 +255,12 @@ def test_run_cluster_parallel_path() -> None:
         table=pl.DataFrame(discordance_rows),
         metadata={},
     )
-    cluster = run_cluster(prepared, discordance, n_jobs=2)
+    cluster = run_cluster(prepared, discordance)
     assert cluster.table.height == 4
-    assert cluster.metadata.get("n_jobs_effective", 1) >= 1
+    assert cluster.metadata["n_proteins"] == 2
+    assert not {"n_jobs_requested", "n_jobs_effective", "parallel_fallback"} & set(
+        cluster.metadata
+    )
 
 
 def test_build_profile_blocks_rejects_config_mismatch() -> None:

@@ -241,15 +241,83 @@ def test_correction_within_holm_changes_within_p_values() -> None:
 
 
 def test_resolve_n_jobs_default(monkeypatch: pytest.MonkeyPatch) -> None:
-    """``n_jobs=-1`` caps workers and avoids oversubscribing BLAS threads."""
+    """``n_jobs=-1`` uses half the available CPUs, capped at 8."""
     import proteoforge._discordance as disc
 
-    monkeypatch.setattr(disc.os, "cpu_count", lambda: 16)
+    monkeypatch.setattr(disc, "_available_cpus", lambda: 32)
     assert disc._resolve_n_jobs(-1) == 8
-    monkeypatch.setattr(disc.os, "cpu_count", lambda: 4)
+    monkeypatch.setattr(disc, "_available_cpus", lambda: 4)
     assert disc._resolve_n_jobs(-1) == 2
+    monkeypatch.setattr(disc, "_available_cpus", lambda: 1)
+    assert disc._resolve_n_jobs(-1) == 1
     assert disc._resolve_n_jobs(0) == 1
     assert disc._resolve_n_jobs(3) == 3
+
+
+def test_available_cpus_respects_affinity(monkeypatch: pytest.MonkeyPatch) -> None:
+    import proteoforge._discordance as disc
+
+    monkeypatch.setattr(disc.os, "process_cpu_count", lambda: 6, raising=False)
+    assert disc._available_cpus() == 6
+
+    monkeypatch.delattr(disc.os, "process_cpu_count", raising=False)
+    monkeypatch.setattr(
+        disc.os, "sched_getaffinity", lambda pid: {8, 9, 10}, raising=False
+    )
+    assert disc._available_cpus() == 3
+
+    monkeypatch.delattr(disc.os, "sched_getaffinity", raising=False)
+    monkeypatch.setattr(disc.os, "cpu_count", lambda: None)
+    assert disc._available_cpus() == 1
+
+
+def test_single_threaded_worker_env_restores_parent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import proteoforge._discordance as disc
+
+    monkeypatch.setenv("OPENBLAS_NUM_THREADS", "4")
+    monkeypatch.delenv("POLARS_MAX_THREADS", raising=False)
+    with disc._single_threaded_worker_env():
+        for name in disc._NATIVE_THREAD_VARS:
+            assert disc.os.environ[name] == "1"
+    assert disc.os.environ["OPENBLAS_NUM_THREADS"] == "4"
+    assert "POLARS_MAX_THREADS" not in disc.os.environ
+
+
+def _worker_thread_state() -> tuple[dict[str, str | None], list[int]]:
+    import os
+
+    import numpy  # noqa: F401  (load BLAS so threadpoolctl can see it)
+    from threadpoolctl import threadpool_info
+
+    import proteoforge._discordance as disc
+
+    env = {name: os.environ.get(name) for name in disc._NATIVE_THREAD_VARS}
+    blas = [
+        pool["num_threads"] for pool in threadpool_info() if pool["user_api"] == "blas"
+    ]
+    return env, blas
+
+
+def test_pool_workers_start_with_one_native_thread() -> None:
+    """Workers get one native thread even though NumPy loads before any initializer."""
+    pytest.importorskip("threadpoolctl")
+    from concurrent.futures import ProcessPoolExecutor
+
+    import proteoforge._discordance as disc
+
+    with (
+        disc._single_threaded_worker_env(),
+        ProcessPoolExecutor(1, mp_context=disc._PROCESS_POOL_CTX) as pool,
+    ):
+        env, blas_threads = pool.submit(_worker_thread_state).result()
+    assert all(value == "1" for value in env.values())
+    if not blas_threads:
+        # Apple Accelerate (NumPy's BLAS on macOS arm64) is not visible to
+        # threadpoolctl; the environment check above still applies.
+        pytest.skip("no BLAS library visible to threadpoolctl")
+    assert all(threads == 1 for threads in blas_threads)
 
 
 def test_spawn_main_usable_rejects_stdin() -> None:

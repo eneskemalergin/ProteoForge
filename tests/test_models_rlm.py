@@ -237,3 +237,93 @@ def test_rlm_downweights_single_outlier() -> None:
 
     # OLS is dragged toward significance by the outlier; RLM resists it.
     assert rlm_p[0] > ols_p[0]
+
+
+def _huber_scale_batch_numpy(
+    residual: np.ndarray, df_resid: np.ndarray, *, nobs: int
+) -> np.ndarray:
+    # NumPy implementation used before the numba kernel; kept as the oracle.
+    from proteoforge.models import _rlm
+
+    d = _rlm._HUBER_SCALE_D
+    h = (
+        df_resid
+        / nobs
+        * (
+            d**2
+            + (1.0 - d**2) * _rlm._NORM_CDF_D
+            - 0.5
+            - d / _rlm._SQRT_2PI * np.exp(-0.5 * d**2)
+        )
+    )
+    s = _rlm._mad_batch(residual)
+    still = (h > 0.0) & (s > 0.0)
+    curr = np.zeros(residual.shape[0], dtype=np.float64)
+    curr[still] = s[still]
+    for _ in range(1, _rlm._HUBER_SCALE_MAX_ITER):
+        idx = np.flatnonzero(still)
+        if idx.size == 0:
+            break
+        r, c, ha = residual[idx], curr[idx], h[idx]
+        inside = np.abs(r / c[:, None]) < d
+        chi = np.where(inside, (r / c[:, None]) ** 2 / 2.0, d**2 / 2.0)
+        nscale = np.sqrt(np.sum(chi, axis=1) / (nobs * ha) * c**2)
+        converged = np.abs(nscale - c) <= _rlm._IRLS_TOL
+        curr[idx] = nscale
+        still[idx[converged]] = False
+    return curr
+
+
+@pytest.mark.parametrize("n_obs", [8, 31, 240])
+def test_huber_scale_batch_matches_numpy_reference(n_obs: int) -> None:
+    from proteoforge.models._rlm import _huber_scale_batch
+
+    rng = np.random.default_rng(n_obs)
+    residual = rng.standard_t(df=3, size=(50, n_obs))
+    df_resid = rng.integers(1, n_obs, size=50).astype(np.float64)
+    expected = _huber_scale_batch_numpy(residual, df_resid, nobs=n_obs)
+    got = _huber_scale_batch(residual, df_resid, nobs=n_obs)
+    np.testing.assert_allclose(got, expected, rtol=1e-12, atol=0.0)
+
+
+def test_huber_scale_batch_edge_rows() -> None:
+    from proteoforge.models._rlm import _huber_scale_batch
+
+    rng = np.random.default_rng(5)
+    residual = rng.normal(size=(4, 12))
+    residual[1] = 0.0  # zero spread: MAD is 0
+    df_resid = np.array([6.0, 6.0, 0.0, -1.0])  # rows 2 and 3: h <= 0
+    got = _huber_scale_batch(residual, df_resid, nobs=12)
+    expected = _huber_scale_batch_numpy(residual, df_resid, nobs=12)
+    assert got[0] > 0.0
+    np.testing.assert_array_equal(got[1:], [0.0, 0.0, 0.0])
+    np.testing.assert_allclose(got, expected, rtol=1e-12, atol=0.0)
+
+    one = _huber_scale_batch(residual[:1], df_resid[:1], nobs=12)
+    np.testing.assert_allclose(one, expected[:1], rtol=1e-12, atol=0.0)
+    empty = _huber_scale_batch(np.empty((0, 12)), np.empty(0), nobs=12)
+    assert empty.shape == (0,)
+
+
+def test_wls_step_batch_matches_per_row_lstsq() -> None:
+    from proteoforge.models._rlm import _wls_step_batch
+
+    rng = np.random.default_rng(17)
+    m, n_obs, n_params = 12, 40, 6
+    design = rng.normal(size=(m, n_obs, n_params))
+    design[:, :, 0] = 1.0
+    y = rng.normal(size=(m, n_obs))
+    weights = rng.uniform(0.05, 1.0, size=(m, n_obs))
+
+    beta, resid, scale = _wls_step_batch(design, y, weights)
+
+    for i in range(m):
+        sqrt_w = np.sqrt(weights[i])
+        expected_beta = np.linalg.lstsq(
+            design[i] * sqrt_w[:, None], y[i] * sqrt_w, rcond=None
+        )[0]
+        expected_resid = y[i] - design[i] @ expected_beta
+        expected_scale = np.sum(weights[i] * expected_resid**2) / (n_obs - n_params)
+        np.testing.assert_allclose(beta[i], expected_beta, rtol=1e-10, atol=1e-12)
+        np.testing.assert_allclose(resid[i], expected_resid, rtol=1e-10, atol=1e-12)
+        np.testing.assert_allclose(scale[i], expected_scale, rtol=1e-10, atol=0.0)
