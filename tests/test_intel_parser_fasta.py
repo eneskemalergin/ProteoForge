@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import random
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import polars as pl
 import pytest
 
 from proteoforge.intel.parser import fasta
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @pytest.fixture
@@ -84,7 +87,7 @@ _RANDOM_SEQUENCES = tuple(
 
 class TestSchema:
     def test_column_schema_derives_available_and_default_columns(self) -> None:
-        assert fasta.AVAILABLE_COLUMNS == list(fasta.COLUMN_SCHEMA)
+        assert list(fasta.COLUMN_SCHEMA) == fasta.AVAILABLE_COLUMNS
         assert set(fasta.DEFAULT_COLUMNS) <= set(fasta.AVAILABLE_COLUMNS)
         assert "organism" not in fasta.DEFAULT_COLUMNS
         assert "sequence" in fasta.DEFAULT_COLUMNS
@@ -102,7 +105,9 @@ class TestFastaContract:
             col: fasta.COLUMN_SCHEMA[col] for col in fasta.DEFAULT_COLUMNS
         }
 
-    def test_all_entries_filtered_returns_typed_empty_frame(self, fasta_path: Path) -> None:
+    def test_all_entries_filtered_returns_typed_empty_frame(
+        self, fasta_path: Path
+    ) -> None:
         _write_fasta(
             fasta_path,
             [
@@ -116,7 +121,9 @@ class TestFastaContract:
         assert frame.schema["sequenceLength"] == pl.Int64
         assert frame.schema["molecularWeight_kDa"] == pl.Float64
 
-    def test_return_result_reports_processed_and_skip_totals(self, fasta_path: Path) -> None:
+    def test_return_result_reports_processed_and_skip_totals(
+        self, fasta_path: Path
+    ) -> None:
         _write_fasta(
             fasta_path,
             [
@@ -305,7 +312,9 @@ class TestFastaContract:
                 sort_by=["entry", "entriy"],
             )
 
-    def test_include_sequence_false_default_omits_sequence(self, fasta_path: Path) -> None:
+    def test_include_sequence_false_default_omits_sequence(
+        self, fasta_path: Path
+    ) -> None:
         _write_fasta(
             fasta_path,
             [(_uniprot_header("P11111", "NOSQ_HUMAN", gene="N"), "ACDEFGHI")],
@@ -424,8 +433,12 @@ class TestFastaEdge:
         with pytest.raises(ValueError, match="before header"):
             list(fasta.read_fasta_entries(fasta_path))
 
-    def test_headers_without_sequence_are_length_filtered(self, fasta_path: Path) -> None:
-        _write_fasta(fasta_path, [(_uniprot_header("P11111", "EMPTY_HUMAN", gene="E"), "")])
+    def test_headers_without_sequence_are_length_filtered(
+        self, fasta_path: Path
+    ) -> None:
+        _write_fasta(
+            fasta_path, [(_uniprot_header("P11111", "EMPTY_HUMAN", gene="E"), "")]
+        )
         result = fasta.fasta_to_dataframe(
             fasta_path,
             return_result=True,
@@ -503,7 +516,9 @@ class TestFastaEdge:
         assert result.dataframe["entry"][0] == "P22222"
         assert result.skipped.malformed_header == 3
 
-    def test_invalid_amino_acids_skipped_with_explicit_reason(self, fasta_path: Path) -> None:
+    def test_invalid_amino_acids_skipped_with_explicit_reason(
+        self, fasta_path: Path
+    ) -> None:
         _write_fasta(
             fasta_path,
             [
@@ -624,7 +639,9 @@ class TestFastaEdge:
         frame = fasta.fasta_to_dataframe(fasta_path)
         assert frame["sequence"][0] == "ACDEFGHI"
 
-    def test_read_fasta_entries_without_trailing_newline(self, fasta_path: Path) -> None:
+    def test_read_fasta_entries_without_trailing_newline(
+        self, fasta_path: Path
+    ) -> None:
         header = _uniprot_header("P11111", "EOF_HUMAN", gene="E")
         _write_fasta(
             fasta_path,
@@ -649,7 +666,13 @@ class TestFastaEdge:
             ],
         )
         frame = fasta.fasta_to_dataframe(fasta_path)
-        by_entry = dict(zip(frame["entry"].to_list(), frame["isoformStatus"].to_list()))
+        by_entry = dict(
+            zip(
+                frame["entry"].to_list(),
+                frame["isoformStatus"].to_list(),
+                strict=True,
+            )
+        )
         assert by_entry["P12345"] == "canonical"
         assert by_entry["P12345-2"] == "isoform"
 

@@ -9,21 +9,40 @@ from __future__ import annotations
 
 import re
 import time
-from collections.abc import Generator
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import polars as pl
 from numba import njit
 
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
 _BASE_AMINO_ACID_WEIGHTS: dict[str, float] = {
-    "A": 71.03711, "C": 103.00919, "D": 115.02694, "E": 129.04259,
-    "F": 147.06841, "G": 57.02146, "H": 137.05891, "I": 113.08406,
-    "K": 128.09496, "L": 113.08406, "M": 131.04049, "N": 114.04293,
-    "P": 97.05276, "Q": 128.05858, "R": 156.10111, "S": 87.03203,
-    "T": 101.04768, "V": 99.06841, "W": 186.07931, "Y": 163.06333,
-    "U": 150.948923, "O": 237.143012,
+    "A": 71.03711,
+    "C": 103.00919,
+    "D": 115.02694,
+    "E": 129.04259,
+    "F": 147.06841,
+    "G": 57.02146,
+    "H": 137.05891,
+    "I": 113.08406,
+    "K": 128.09496,
+    "L": 113.08406,
+    "M": 131.04049,
+    "N": 114.04293,
+    "P": 97.05276,
+    "Q": 128.05858,
+    "R": 156.10111,
+    "S": 87.03203,
+    "T": 101.04768,
+    "V": 99.06841,
+    "W": 186.07931,
+    "Y": 163.06333,
+    "U": 150.948923,
+    "O": 237.143012,
 }
 _STANDARD_AA: frozenset[str] = frozenset("ACDEFGHIKLMNPQRSTVWY")
 _AMBIGUOUS_AMINO_ACID_WEIGHTS: dict[str, float] = {
@@ -42,29 +61,37 @@ _VALID_AA: frozenset[str] = _STRICT_VALID_AA | frozenset("BZJX")
 
 # Single schema source: column name -> Polars dtype.
 COLUMN_SCHEMA: dict[str, pl.DataType] = {
-    "entry": pl.Utf8,
-    "entryName": pl.Utf8,
-    "geneName": pl.Utf8,
-    "proteinDescription": pl.Utf8,
-    "reviewStatus": pl.Utf8,
-    "organism": pl.Utf8,
-    "taxonomyId": pl.Int64,
-    "proteinExistence": pl.Int64,
-    "sequenceVersion": pl.Int64,
-    "isoformStatus": pl.Utf8,
-    "sequenceLength": pl.Int64,
-    "molecularWeight_kDa": pl.Float64,
-    "sequence": pl.Utf8,
+    "entry": pl.Utf8(),
+    "entryName": pl.Utf8(),
+    "geneName": pl.Utf8(),
+    "proteinDescription": pl.Utf8(),
+    "reviewStatus": pl.Utf8(),
+    "organism": pl.Utf8(),
+    "taxonomyId": pl.Int64(),
+    "proteinExistence": pl.Int64(),
+    "sequenceVersion": pl.Int64(),
+    "isoformStatus": pl.Utf8(),
+    "sequenceLength": pl.Int64(),
+    "molecularWeight_kDa": pl.Float64(),
+    "sequence": pl.Utf8(),
 }
 AVAILABLE_COLUMNS: list[str] = list(COLUMN_SCHEMA)
 DEFAULT_COLUMNS: list[str] = [
-    c for c in AVAILABLE_COLUMNS
+    c
+    for c in AVAILABLE_COLUMNS
     if c not in {"organism", "taxonomyId", "proteinExistence", "sequenceVersion"}
 ]
 
 _HEADER_FIELDS: tuple[str, ...] = (
-    "reviewStatus", "entry", "entryName", "proteinDescription", "geneName",
-    "organism", "taxonomyId", "proteinExistence", "sequenceVersion",
+    "reviewStatus",
+    "entry",
+    "entryName",
+    "proteinDescription",
+    "geneName",
+    "organism",
+    "taxonomyId",
+    "proteinExistence",
+    "sequenceVersion",
 )
 _MALFORMED_HEADER: dict[str, str | int | None] = dict.fromkeys(_HEADER_FIELDS)
 
@@ -168,7 +195,7 @@ class _RowBatch:
         self.molecularWeight_kDa.append(molecular_weight_kda)
         self.sequence.append(sequence)
 
-    def to_frame_data(self) -> dict[str, list]:
+    def to_frame_data(self) -> dict[str, list[object]]:
         return {name: getattr(self, name) for name in AVAILABLE_COLUMNS}
 
 
@@ -299,9 +326,7 @@ def calc_molecular_weight(sequence: str, *, allow_ambiguous: bool = True) -> flo
     ok, mw_kda = _validate_and_mw_kda(seq_u, allow_ambiguous=allow_ambiguous)
     if not ok:
         invalid = _invalid_amino_acids(seq_u, allow_ambiguous=allow_ambiguous)
-        raise ValueError(
-            f"Invalid amino acid(s) '{''.join(sorted(invalid))}' found."
-        )
+        raise ValueError(f"Invalid amino acid(s) '{''.join(sorted(invalid))}' found.")
     return mw_kda
 
 
@@ -516,7 +541,8 @@ def fasta_to_dataframe(
     path = _validate_fasta_path(fasta_path)
     if column_order is None:
         columns = list(
-            DEFAULT_COLUMNS if include_sequence
+            DEFAULT_COLUMNS
+            if include_sequence
             else [col for col in DEFAULT_COLUMNS if col != "sequence"]
         )
     else:

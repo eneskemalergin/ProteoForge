@@ -154,6 +154,7 @@ module = [
     "proteoforge.correction._methods",
     "proteoforge.correction._hommel",
     "proteoforge.correction.qvalue._gcv",
+    "proteoforge.intel.parser.fasta",
 ]
 disable_error_code = ["untyped-decorator", "no-any-return"]
 
