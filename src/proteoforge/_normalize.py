@@ -151,15 +151,15 @@ def normalize_control_relative_long(
             / pl.col("_value").std().over(SAMPLE_ID)
         ).alias("_z")
     )
+    # A window mean is bit-reproducible; group_by().agg(mean) over many groups
+    # adds values in a thread-dependent order and changes the last bits per run.
     control_mean = (
-        work.filter(pl.col(SAMPLE_ID).is_in(control_set))
-        .group_by([PROTEIN_ID, PEPTIDE_ID])
-        .agg(pl.col("_z").mean().alias("_ctrl_mean"))
+        pl.col("_z")
+        .filter(pl.col(SAMPLE_ID).is_in(control_set))
+        .mean()
+        .over([PROTEIN_ID, PEPTIDE_ID])
     )
-    work = work.join(control_mean, on=[PROTEIN_ID, PEPTIDE_ID], how="left")
-    work = work.with_columns(
-        (pl.col("_z") - pl.col("_ctrl_mean")).alias(NORMALIZED_INTENSITY)
-    )
+    work = work.with_columns((pl.col("_z") - control_mean).alias(NORMALIZED_INTENSITY))
     return work.select([*frame.columns, NORMALIZED_INTENSITY])
 
 

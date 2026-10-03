@@ -27,6 +27,7 @@ Clustering runs on every protein in the prepared scope; repository reorganized a
 
 ### Fixed
 
+- `prepare()` gives bit-identical results for identical input. The per-peptide control mean used a parallel group-by whose summation order changed between runs, which moved normalized intensities and p-values in the last bits (up to about 1e-9 relative on the test datasets).
 - Discordance worker processes now start with one BLAS, OpenMP, numba, and Polars thread each. The limit was previously set inside the workers after NumPy had loaded, so each worker could start one BLAS thread per CPU.
 
 ### Removed

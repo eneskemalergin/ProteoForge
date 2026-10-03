@@ -103,3 +103,32 @@ def test_long_normalize_preserves_row_order(
     )
 
     assert keys.equals(long_norm.select(["protein_id", "peptide_id", "sample_id"]))
+
+
+def test_long_normalize_is_bit_identical_across_runs() -> None:
+    """Many peptide groups: the control mean must not depend on thread scheduling."""
+    import polars as pl
+
+    from proteoforge._normalize import normalize_control_relative_long
+
+    rng = np.random.default_rng(7)
+    samples = [f"S{i}" for i in range(10)]
+    n_peptides = 30_000
+    frame = pl.DataFrame(
+        {
+            "protein_id": np.repeat(
+                [f"P{i // 6}" for i in range(n_peptides)], len(samples)
+            ),
+            "peptide_id": np.repeat([f"p{i}" for i in range(n_peptides)], len(samples)),
+            "sample_id": np.tile(samples, n_peptides),
+            "intensity": rng.lognormal(20.0, 1.5, size=n_peptides * len(samples)),
+        }
+    )
+    runs = [
+        normalize_control_relative_long(
+            frame, control_sample_ids=tuple(samples[:5]), input_is_log2=False
+        )[NORMALIZED_INTENSITY].to_numpy()
+        for _ in range(4)
+    ]
+    for other in runs[1:]:
+        np.testing.assert_array_equal(other, runs[0])
