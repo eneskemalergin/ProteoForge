@@ -1,28 +1,25 @@
-<!-- markdownlint-disable MD033 MD036 MD041 MD045 -->
+<!-- markdownlint-disable MD033 MD041 -->
 <p align="center">
-    <!-- <img src="assets/icon.jpg" alt="ProteoForge logo" /> -->
-    <strong>ProteoForge</strong>
+  <img src="https://raw.githubusercontent.com/eneskemalergin/ProteoForge/main/assets/proteoforge-readme-header.svg" alt="ProteoForge" width="420">
 </p>
 
 <p align="center">
-    <strong>Differential proteoform discovery for bottom-up proteomics</strong>
+  Imputation-aware discovery of differential proteoforms from bottom-up proteomics peptide data.
 </p>
 
 <p align="center">
-    <a href="#references"><img src="https://img.shields.io/badge/paper-bioRxiv%202025-7c3aed?style=for-the-badge" alt="Paper" /></a>
-    <a href="docs/index.md"><img src="https://img.shields.io/badge/docs-0891b2?style=for-the-badge" alt="Documentation" /></a>
-    <a href="https://github.com/eneskemalergin/ProteoForge/actions"><img src="https://img.shields.io/github/actions/workflow/status/eneskemalergin/ProteoForge/ci.yml?branch=main&style=for-the-badge&logo=github&label=CI" alt="CI" /></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-059669?style=for-the-badge" alt="MIT License" /></a>
-    <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-64748b?style=for-the-badge" alt="Changelog" /></a>
+  <img src="https://img.shields.io/badge/python-3.12%2B-2D7D46?style=flat-square&logo=python&logoColor=white" alt="Python 3.12+">
+  <img src="https://img.shields.io/badge/version-0.0.4-8B5CF6?style=flat-square" alt="v0.0.4">
+  <img src="https://img.shields.io/badge/status-alpha-C17D10?style=flat-square" alt="Alpha">
+  <a href="https://github.com/eneskemalergin/ProteoForge/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/eneskemalergin/ProteoForge/ci.yml?branch=main&style=flat-square&logo=github&label=CI" alt="CI"></a>
+  <a href="https://doi.org/10.1021/acs.jproteome.5c01235"><img src="https://img.shields.io/badge/J.%20Proteome%20Res.-10.1021%2Facs.jproteome.5c01235-0066CC?style=flat-square" alt="J. Proteome Res. DOI 10.1021/acs.jproteome.5c01235"></a>
+  <img src="https://img.shields.io/badge/license-MIT-4B9D6E?style=flat-square" alt="MIT">
 </p>
+
 <p align="center">
-    <a href="#installation"><img src="https://img.shields.io/badge/python-3.12%2B-f59e0b?style=for-the-badge" alt="Python 3.12+" /></a>
-    <a href="#installation"><img src="https://img.shields.io/badge/numpy-2.2%2B-2563eb?style=for-the-badge&logo=numpy&logoColor=white" alt="NumPy 2.2+" /></a>
-    <a href="#installation"><img src="https://img.shields.io/badge/polars-1.26%2B-cd7c2f?style=for-the-badge&logo=polars&logoColor=white" alt="Polars 1.26+" /></a>
-    <a href="#installation"><img src="https://img.shields.io/badge/numba-0.61%2B-00a3b8?style=for-the-badge" alt="Numba 0.61+" /></a>
-</p>
-<p align="center">
-    <a href="https://github.com/eneskemalergin/ProteoForge"><img src="https://img.shields.io/badge/status-in%20development-0f766e?style=for-the-badge" alt="In development" /></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/changelog-CHANGELOG-E05D44?style=flat-square" alt="Changelog"></a>
+  <a href="CITATION.cff"><img src="https://img.shields.io/badge/cite-CITATION.cff-0066CC?style=flat-square" alt="Citation"></a>
+  <a href="https://github.com/eneskemalergin/ProteoForge/issues"><img src="https://img.shields.io/badge/issues-GitHub-8B5CF6?style=flat-square" alt="Issues"></a>
 </p>
 
 > **Note:** Modules 1 to 3 ship today (prepare, discordance, Ward clustering, dPF assignment). The unified `discover()` API and HTML report are planned.
@@ -111,11 +108,7 @@ cd ProteoForge
 uv sync
 ```
 
-Optional extras: `plots`, `interactive`, `docs`. The `cli` extra is reserved for a future Typer CLI. Clustering geometry uses Numba JIT in `proteoforge.clustering`.
-
-```bash
-pip install -e ".[plots,docs]"
-```
+Clustering geometry and the q-value spline use Numba JIT; the first call compiles and caches the kernels.
 
 ## Quick start
 
@@ -181,25 +174,7 @@ proteoforge discover peptides.parquet --config config.yaml -o results/
 
 ## Documentation
 
-User documentation:
-
-- [Documentation home](docs/index.md)
-- [Configuration](docs/config.md)
-- [Input and output](docs/io.md)
-- [Prepare](docs/prepare.md)
-- [Normalization](docs/normalization.md)
-- [Discordance](docs/discordance.md)
-- [Multiple-testing correction](docs/correction.md)
-- [Clustering](docs/clustering.md)
-- [PreparedDataset](docs/prepared-dataset.md)
-- [Changelog](CHANGELOG.md)
-
-Build the docs site locally:
-
-```bash
-uv sync --extra docs
-uv run mkdocs serve
-```
+The user guide is being rewritten. Until it is published, the docstrings of the public functions (`help(proteoforge.prepare)`) and the [changelog](CHANGELOG.md) describe current behavior.
 
 ## Development
 
@@ -221,11 +196,31 @@ Tests use small fixtures in `tests/fixtures/`. For bundled parquet configs used 
 
 Tag `vX.Y.Z` to trigger trusted PyPI publish (`hatch-vcs` versioning).
 
+## Citation
+
+If you use ProteoForge, please cite:
+
+> Ergin, E. K.; Conrrero, A.; Ferguson, K. M.; Lange, P. F. ProteoForge: An Imputation-Aware Framework for Differential Proteoform Discovery in Bottom-Up Proteomics. *J. Proteome Res.* **2026**, *25* (7), 3384–3398. <https://doi.org/10.1021/acs.jproteome.5c01235>
+
+```bibtex
+@article{Ergin2026ProteoForge,
+  author  = {Ergin, Enes K. and Conrrero, Agustina and Ferguson, Kirsty M. and Lange, Philipp F.},
+  title   = {ProteoForge: An Imputation-Aware Framework for Differential Proteoform Discovery in Bottom-Up Proteomics},
+  journal = {Journal of Proteome Research},
+  year    = {2026},
+  volume  = {25},
+  number  = {7},
+  pages   = {3384--3398},
+  doi     = {10.1021/acs.jproteome.5c01235}
+}
+```
+
+`CITATION.cff` carries the same reference for GitHub's "Cite this repository" button.
+
 ## References
 
-- ProteoForge manuscript (bioRxiv 2025)
 - [PeCorA](https://doi.org/10.1021/acs.jproteome.0c00602), [COPF](https://doi.org/10.1038/s41467-021-24030-x)
-- [ProteoForge analysis repository](https://github.com/LangeLab/ProteoForge_Analysis) (manuscript reference implementation)
+- [ProteoForge analysis repository](https://github.com/LangeLab/ProteoForge_Analysis) (reference implementation used in the article)
 
 ## License
 

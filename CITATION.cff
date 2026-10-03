@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use ProteoForge in your research, please cite the article below."
+title: "ProteoForge: differential proteoform discovery for bottom-up proteomics"
+type: software
+license: MIT
+repository-code: "https://github.com/eneskemalergin/ProteoForge"
+authors:
+  - family-names: Ergin
+    given-names: Enes Kemal
+    orcid: "https://orcid.org/0000-0001-9810-7399"
+keywords:
+  - proteomics
+  - proteoforms
+  - bottom-up proteomics
+  - peptide quantification
+  - differential analysis
+  - bioinformatics
+preferred-citation:
+  type: article
+  title: "ProteoForge: An Imputation-Aware Framework for Differential Proteoform Discovery in Bottom-Up Proteomics"
+  authors:
+    - family-names: Ergin
+      given-names: Enes K.
+    - family-names: Conrrero
+      given-names: Agustina
+    - family-names: Ferguson
+      given-names: Kirsty M.
+    - family-names: Lange
+      given-names: Philipp F.
+      orcid: "https://orcid.org/0000-0003-1171-5864"
+  journal: "Journal of Proteome Research"
+  year: 2026
+  volume: 25
+  issue: 7
+  start: 3384
+  end: 3398
+  doi: "10.1021/acs.jproteome.5c01235"
