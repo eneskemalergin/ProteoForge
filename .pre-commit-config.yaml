@@ -27,7 +27,6 @@ repos:
         additional_dependencies:
           - numpy>=2.2
           - polars>=1.26
-          - scipy>=1.15
           - types-PyYAML>=6.0.12
         args: ["--config-file=pyproject.toml"]
         pass_filenames: false

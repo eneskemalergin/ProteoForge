@@ -35,24 +35,39 @@ def test_qvalue_empty_returns_copy() -> None:
     np.testing.assert_array_equal(adjust_qvalues(empty, n_tests=0), empty)
 
 
-def test_qvalue_matches_ref_oracle() -> None:
+def _scipy_qvalue_oracle(p: np.ndarray) -> tuple[float, np.ndarray]:
+    # Storey q-values with pi0 from SciPy's GCV smoothing spline evaluated at the
+    # largest lambda; same algorithm as QuEStVar p_adjust(p, "qvalue")
+    # (MIT, https://github.com/eneskemalergin/QuEStVar).
+    from scipy.interpolate import make_smoothing_spline
+
+    m = p.size
+    counts = m - np.searchsorted(np.sort(p), QVALUE_LAMBDAS, side="right")
+    pi0_lambda = counts / (m * (1.0 - QVALUE_LAMBDAS))
+    pi0 = float(make_smoothing_spline(QVALUE_LAMBDAS, pi0_lambda)(QVALUE_LAMBDAS)[-1])
+    pi0 = min(pi0, 1.0)
+    order = np.argsort(p)[::-1]
+    ranks = np.arange(m, 0, -1, dtype=np.float64)
+    q_sorted = pi0 * np.minimum(1.0, np.minimum.accumulate(p[order] * m / ranks))
+    q = np.empty_like(p)
+    q[order] = q_sorted
+    return pi0, q
+
+
+def test_qvalue_matches_scipy_smoothing_spline_oracle() -> None:
     pytest.importorskip("scipy")
-    try:
-        import sys
-        from pathlib import Path
-
-        ref_root = Path(__file__).resolve().parents[1] / "ref"
-        if not ref_root.is_dir():
-            pytest.skip("ref/_correction.py not available")
-        sys.path.insert(0, str(ref_root))
-        from _correction import p_adjust as ref_p_adjust
-    except ImportError:
-        pytest.skip("ref oracle not available")
-
     rng = np.random.default_rng(2026)
-    p = np.concatenate([rng.uniform(0.0, 1.0, 2_000), rng.uniform(0.0, 0.001, 20)])
-    expected = ref_p_adjust(p, "qvalue")
-    np.testing.assert_allclose(p_adjust(p, "qvalue"), expected, rtol=0, atol=1e-6)
+    # 70% nulls plus a signal component, so pi0 is estimated below 1 rather
+    # than clipped, and the smoothing spline itself is exercised.
+    p = np.concatenate([rng.uniform(0.0, 1.0, 1_400), rng.beta(0.2, 5.0, 600)])
+
+    expected_pi0, expected_q = _scipy_qvalue_oracle(p)
+
+    assert 0.5 < expected_pi0 < 1.0
+    # The NumPy GCV spline solves a different linear system than SciPy's, so
+    # agreement is about 1e-8 rather than float64 round-off.
+    np.testing.assert_allclose(pi0_from_pvalues(p), expected_pi0, rtol=0, atol=1e-7)
+    np.testing.assert_allclose(p_adjust(p, "qvalue"), expected_q, rtol=0, atol=1e-7)
 
 
 def test_pi0_from_pvalues_empty_returns_one() -> None:

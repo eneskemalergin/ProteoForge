@@ -5,17 +5,28 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
-Clustering runs on every protein in the prepared scope.
+Clustering runs on every protein in the prepared scope; repository reorganized ahead of v0.1.0.
 
 ### Added
 
 - `proteoforge.intel.parser.fasta`: UniProt FASTA to Polars table (header parse, sequence validation, molecular weight, skip accounting via `FastaParseResult`)
+- `CITATION.cff` and a README citation for the article in the *Journal of Proteome Research* (2026, doi:10.1021/acs.jproteome.5c01235)
+- README rewritten and fact-checked against the code: light and dark header (outlined Inter wordmark), the four method stages from the article, what "imputation-aware" means for RLM and WLS, verified install and quick-start steps, and links to the analysis repository and its Zenodo snapshot
+- CI with Python 3.12 on Linux (x64, arm64) and macOS (arm64), Python 3.13 and 3.14 on Linux x64, plus coverage, dependency-floor, packaging, and runtime-audit jobs; runs on `main` and `dev`
 
 ### Changed
 
 - `run_cluster()` clusters all proteins in scope, not only those with discordant peptides. `ClusterResult.table` and `ProteoformMappingResult.table` now include `cluster_id` on every peptide; canonical proteins still receive `dpf_id = 0`.
 - `ClusterResult.metadata`: `n_proteins` added; `n_discordant_proteins` counts discordant proteins only.
 - Clustering docs updated for full-scope behavior (`docs/clustering.md`, `docs/discordance.md`, `docs/index.md`, README).
+- Minimum numba is 0.61.2 (0.61.0 does not support NumPy 2.2). All runtime floors are tested in CI.
+- The q-value test compares against a SciPy smoothing-spline oracle instead of skipping.
+
+### Removed
+
+- MkDocs site, `docs/` pages, and the `docs` extra. The user guide is being rewritten.
+- Placeholder extras `intel`, `plots`, `interactive`, `cli`, and `ref`; they installed packages that ProteoForge does not import yet.
+- Python 3.15 classifier; issue and pull request templates; the deferred CodSpeed workflow.
 
 ## [0.0.4] - 2026-06-10
 

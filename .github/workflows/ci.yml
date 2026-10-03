@@ -2,44 +2,296 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  # Superseded pushes to a PR are cancelled; branch pushes always finish.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  UV_PYTHON: "3.12"
+  FORCE_COLOR: "1"
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
-  check:
-    name: Lint, typecheck, and test
-    runs-on: ubuntu-latest
-    # Slim gate until v0.1.0: one OS, Python 3.12. Expand matrix (OS × 3.12–3.14)
-    # after first public release; skip 3.15 until stable (~Oct 2026).
+  quality:
+    name: Quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          python-version: "3.12"
+          persist-credentials: false
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v8.2.0
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          python-version: "3.12"
+          enable-cache: true
+          cache-suffix: quality
+
+      - name: Check lockfile is current
+        run: uv lock --check
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --locked
 
-      - name: Ruff lint
+      - name: Lint
         run: uv run ruff check .
 
-      - name: Ruff format
+      - name: Check formatting
         run: uv run ruff format --check .
 
-      - name: Mypy
+      - name: Check types
         run: uv run mypy
 
-      - name: Pytest
-        run: uv run pytest tests --cov=proteoforge --cov-report=term-missing
+      - name: Check public files for workspace references
+        # Tracked files must not point at untracked development folders.
+        run: |
+          if git grep -nE '(^|[^A-Za-z0-9_.-])(plan|tmp|ref|real|dev)/' -- src tests scripts pyproject.toml README.md; then
+            echo "::error::Tracked files reference untracked development folders."
+            exit 1
+          fi
+
+  coverage:
+    name: Coverage (Linux x64, Py3.12)
+    needs: quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+          cache-suffix: coverage
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Run tests with branch coverage
+        # The 80% floor is enforced by [tool.coverage.report] fail_under.
+        run: uv run pytest --cov=proteoforge --cov-report=term-missing --cov-report=xml
+
+      - name: Write coverage summary
+        if: always()
+        run: |
+          if [ -f .coverage ]; then
+            uv run coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          if-no-files-found: error
+          retention-days: 14
+
+  test:
+    name: Test (${{ matrix.label }}, Py${{ matrix.python }})
+    needs: quality
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    env:
+      UV_PYTHON: ${{ matrix.python }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Python 3.12 is the canonical version and runs on every platform.
+          - label: Linux arm64
+            os: ubuntu-24.04-arm
+            architecture: arm64
+            python: "3.12"
+          - label: macOS arm64
+            os: macos-15
+            architecture: arm64
+            python: "3.12"
+          # Newer Python versions run on Linux x64 only.
+          - label: Linux x64
+            os: ubuntu-24.04
+            architecture: x86_64
+            python: "3.13"
+          - label: Linux x64
+            os: ubuntu-24.04
+            architecture: x86_64
+            python: "3.14"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+          cache-suffix: test-${{ matrix.os }}-py${{ matrix.python }}
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Verify runner architecture
+        run: >-
+          uv run python -c
+          "import platform, sys; actual = platform.machine().lower();
+          aliases = {'x86_64': {'x86_64', 'amd64'}, 'arm64': {'arm64', 'aarch64'}};
+          assert actual in aliases['${{ matrix.architecture }}'], actual;
+          print(sys.version, platform.system(), actual)"
+
+      - name: Run tests
+        run: uv run pytest --no-cov -q
+
+  floors:
+    name: Dependency floors (Linux x64, Py3.12)
+    needs: quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+          cache-suffix: floors
+
+      - name: Install declared minimum versions
+        # Re-resolves every direct dependency at its lower bound; the runner's
+        # copy of uv.lock is rewritten and discarded with the job.
+        run: uv sync --resolution lowest-direct
+
+      - name: Report resolved versions
+        run: >-
+          uv run --no-sync python -c
+          "import numba, numpy, polars, tqdm, yaml;
+          print('numpy', numpy.__version__, 'polars', polars.__version__, 'numba', numba.__version__,
+          'pyyaml', yaml.__version__, 'tqdm', tqdm.__version__)"
+
+      - name: Run tests at the floors
+        run: uv run --no-sync pytest --no-cov -q
+
+  package:
+    name: Package
+    needs: quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # hatch-vcs derives the version from git history.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
+      - name: Build wheel and sdist
+        run: uv build
+
+      - name: Check distribution contents
+        run: |
+          uv run --no-project python - <<'PY'
+          import tarfile
+          import zipfile
+          from pathlib import Path
+
+          dist = Path("dist")
+          wheels = sorted(dist.glob("*.whl"))
+          sdists = sorted(dist.glob("*.tar.gz"))
+          assert len(wheels) == 1, wheels
+          assert len(sdists) == 1, sdists
+
+          wheel = set(zipfile.ZipFile(wheels[0]).namelist())
+          required = {
+              "proteoforge/__init__.py",
+              "proteoforge/py.typed",
+              "proteoforge/_version.py",
+              "proteoforge/constants/pi0_gcv_spline.npz",
+              "proteoforge/schemas/config.schema.json",
+          }
+          missing = sorted(required - wheel)
+          assert not missing, f"wheel is missing {missing}"
+          leaked = sorted(n for n in wheel if n.startswith(("tests/", "scripts/")))
+          assert not leaked, f"wheel contains repository-only files {leaked}"
+
+          sdist = {n.split("/", 1)[-1] for n in tarfile.open(sdists[0]).getnames()}
+          for name in ("LICENSE", "README.md", "CHANGELOG.md", "CITATION.cff", "pyproject.toml"):
+              assert name in sdist, f"sdist is missing {name}"
+          workspace = ("plan/", "tmp/", "ref/", "data/", ".github/")
+          leaked = sorted(n for n in sdist if n.startswith(workspace))
+          assert not leaked, f"sdist contains workspace files {leaked}"
+          print(wheels[0].name, len(wheel), "files;", sdists[0].name, len(sdist), "files")
+          PY
+
+      - name: Install the wheel in a clean environment
+        run: |
+          uv venv "$RUNNER_TEMP/smoke"
+          uv pip install --python "$RUNNER_TEMP/smoke" dist/*.whl
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/smoke/bin/python" -c "
+          import numpy as np
+          import proteoforge as pf
+          q = pf.p_adjust(np.array([0.001, 0.02, 0.5]), 'fdr_bh')
+          assert q.shape == (3,) and np.all(np.isfinite(q))
+          print('proteoforge', pf.__version__, 'from', pf.__file__)
+          "
+
+  audit:
+    name: Runtime dependency audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
+      - name: Export locked runtime dependencies
+        run: >-
+          uv export --frozen --no-dev --no-emit-project
+          --output-file "$RUNNER_TEMP/requirements.txt"
+
+      - name: Audit for known vulnerabilities
+        run: >-
+          uvx --from pip-audit==2.10.0 pip-audit
+          --require-hashes --requirement "$RUNNER_TEMP/requirements.txt"
+
+  ci-ok:
+    name: CI OK
+    if: always()
+    needs: [quality, coverage, test, floors, package, audit]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every job to pass
+        run: |
+          results='${{ toJSON(needs) }}'
+          echo "$results"
+          failed=$(echo "$results" | jq -r 'to_entries[] | select(.value.result != "success") | .key')
+          if [ -n "$failed" ]; then
+            echo "::error::Jobs not successful: $failed"
+            exit 1
+          fi
