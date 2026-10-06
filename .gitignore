@@ -5,6 +5,7 @@ ref/
 real/
 dev/
 data/
+research/
 
 # Python bytecode and builds
 __pycache__/
